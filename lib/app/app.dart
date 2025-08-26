@@ -1,0 +1,33 @@
+
+import 'package:firesport_users/app/app_prefs.dart';
+import 'package:firesport_users/app/di.dart' as di;
+
+import 'package:firesport_users/presentation/resources/routes_manager.dart';
+import 'package:firesport_users/presentation/resources/theme_manager.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+
+class MyApp extends StatelessWidget {
+  MyApp._internal();
+
+  static MyApp instance = MyApp._internal();
+
+  factory MyApp() => instance;
+  final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+  @override
+  Widget build(BuildContext context) {
+    return ScreenUtilInit(
+      designSize: const Size(390, 844),
+      minTextAdapt: true,
+      splitScreenMode: true,
+      builder: (context, child) => MaterialApp(
+        debugShowCheckedModeBanner: false,
+        title: 'FireSportU',
+        theme: getApplicationTheme(),
+        navigatorKey: navigatorKey,
+        onGenerateRoute: RouteGenerator.getRoute,
+        initialRoute: Routes.root,
+      ),
+    );
+  }
+}

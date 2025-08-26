@@ -1,0 +1,71 @@
+{
+  "privacy_policy": {
+    "last_updated": "2024-12-28",
+    "title": "Privacy Policy",
+    "content": [
+      {
+        "heading": "Information We Collect",
+        "details": [
+          "When you register or log in to our app, we collect the following personal information:",
+          "- Username",
+          "- Email address",
+          "- Password",
+          "- Profile picture"
+        ]
+      },
+      {
+        "heading": "How We Use Your Information",
+        "details": [
+          "We use the collected information for the following purposes:",
+          "- User Authentication: To verify your identity when you log in.",
+          "- Personalized Content: To provide a personalized experience within the app."
+        ]
+      },
+      {
+        "heading": "Data Sharing",
+        "details": [
+          "We do not share your personal information with third-party services. Your data is used solely within our app to provide and improve our services."
+        ]
+      },
+      {
+        "heading": "Data Storage and Protection",
+        "details": [
+          "Your personal information is stored securely in Firebase.",
+          "We implement industry-standard security measures to protect your data, including:",
+          "- Encryption",
+          "- Secure connections",
+          "- Firebase security features"
+        ]
+      },
+      {
+        "heading": "Cookies and Tracking Technologies",
+        "details": [
+          "Our app does not use cookies, analytics tools, or tracking technologies."
+        ]
+      },
+      {
+        "heading": "User Rights",
+        "details": [
+          "You have the following rights regarding your personal information:",
+          "- Access: You can request access to the personal information we hold about you.",
+          "- Deletion: You can request the deletion of your account and personal information.",
+          "To exercise these rights, please contact us at [Your Contact Information]."
+        ]
+      },
+      {
+        "heading": "Changes to This Privacy Policy",
+        "details": [
+          "We may update our Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page.",
+          "You are advised to review this Privacy Policy periodically for any changes.",
+          "Changes to this Privacy Policy are effective when they are posted on this page."
+        ]
+      },
+      {
+        "heading": "Contact Us",
+        "details": [
+          "If you have any questions about this Privacy Policy, you can contact us at [Your Contact Information]."
+        ]
+      }
+    ]
+  }
+}

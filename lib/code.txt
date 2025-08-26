@@ -1,0 +1,11 @@
+flutter pub get && flutter pub run build_runner build --delete-conflicting-outputs
+
+
+
+debug key store
+keytool -list -v -keystore C:\Users\HP2024\.android\debug.keystore -alias androiddebugkey -storepass android -keypass android
+
+
+
+// keytool -list -v -alias androiddebugkey -keystore %USERPROFILE%\.android\debug.keystore
+

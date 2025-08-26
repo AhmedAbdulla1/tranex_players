@@ -1,0 +1,2 @@
+C:/Users/ahmed/StudioProjects/firesport_users/android/app/.cxx/Debug/306v5w65/x86/CMakeFiles/edit_cache.dir
+C:/Users/ahmed/StudioProjects/firesport_users/android/app/.cxx/Debug/306v5w65/x86/CMakeFiles/rebuild_cache.dir
