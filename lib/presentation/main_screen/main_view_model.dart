@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:firesport_users/data/network/network_info.dart';
+import 'package:tranex_users/data/network/network_info.dart';
 import 'package:rxdart/rxdart.dart';
 
 class MainViewModel extends MainViewModelOutput {

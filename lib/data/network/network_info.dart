@@ -15,7 +15,8 @@ class NetworkInfo {
   // Synchronous method to get the connectivity status
   bool get isConnected {
     if (!_isInitialized) {
-      throw Exception('ConnectionState has not been initialized yet. Call await ensureInitialized() first.');
+      throw Exception(
+          'ConnectionState has not been initialized yet. Call await ensureInitialized() first.');
     }
     return _isConnected;
   }

@@ -1,17 +1,17 @@
 import 'dart:developer';
 
 import 'package:dartz/dartz.dart';
-import 'package:firesport_users/data/data_source/local_data_source.dart';
-import 'package:firesport_users/data/data_source/remote_data_source.dart';
-import 'package:firesport_users/data/mapper/mapper.dart';
-import 'package:firesport_users/data/network/error_handler.dart';
-import 'package:firesport_users/data/network/failure.dart';
-import 'package:firesport_users/data/network/network_info.dart';
-import 'package:firesport_users/data/network/requests.dart';
-import 'package:firesport_users/domain/models/matches_entity.dart';
-import 'package:firesport_users/domain/models/models.dart';
-import 'package:firesport_users/domain/repository/trainees_repo.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:tranex_users/data/data_source/local_data_source.dart';
+import 'package:tranex_users/data/data_source/remote_data_source.dart';
+import 'package:tranex_users/data/mapper/mapper.dart';
+import 'package:tranex_users/data/network/error_handler.dart';
+import 'package:tranex_users/data/network/failure.dart';
+import 'package:tranex_users/data/network/network_info.dart';
+import 'package:tranex_users/data/network/requests.dart';
+import 'package:tranex_users/domain/models/matches_entity.dart';
+import 'package:tranex_users/domain/models/models.dart';
+import 'package:tranex_users/domain/repository/trainees_repo.dart';
+import 'package:flutter/material.dart';
 
 class TraineesRepoImpl implements TraineesRepository {
   final RemoteDataSource _remoteDataSource;
@@ -24,10 +24,10 @@ class TraineesRepoImpl implements TraineesRepository {
 
   @override
   Future<Either<Failure, List<TraineeData>>> getTrainees() async {
-    if (await _networkInfo.isConnected) {
+    if ( _networkInfo.isConnected) {
       try {
         List<Map<String, dynamic>> response =
-            await _remoteDataSource.getTeamsDataResponse();
+            await _remoteDataSource.getTraineesDataResponse();
         print(response);
         return Right(response.toDomain());
       } catch (error) {
@@ -40,12 +40,12 @@ class TraineesRepoImpl implements TraineesRepository {
   }
 
   @override
-  Future<Either<Failure, TraineeData>> login(LoginRequest loginRequest) async {
-    if (await _networkInfo.isConnected) {
+  Future<Either<Failure, TraineeData>> checkTraineeExistence(
+      String traineeId) async {
+    if ( _networkInfo.isConnected) {
       try {
         Map<String, dynamic> response =
-            await _remoteDataSource.checkTraineeExistence(loginRequest.userId);
-
+            await _remoteDataSource.checkTraineeExistence(traineeId);
         print(response);
         if (response['exist'] == true) {
           return Right(response.traineeDataToDomain());
@@ -67,11 +67,12 @@ class TraineesRepoImpl implements TraineesRepository {
   @override
   Future<Either<Failure, void>> addTrainingData(
       AddTrainingRequest addTrainingRequest) async {
-    if (await _networkInfo.isConnected) {
+    if (_networkInfo.isConnected) {
       try {
         await _remoteDataSource.addTrainingDataResponse(addTrainingRequest);
         return const Right(0);
       } catch (error) {
+        print(error);
         return Left(
           ErrorHandler.handle(error).failure,
         );
@@ -115,17 +116,17 @@ class TraineesRepoImpl implements TraineesRepository {
   Future<Either<Failure, TrainingData>> getTrainingData(
       GetTrainingRequest getTrainingRequest) async {
     if (await _networkInfo.isConnected) {
-      try {
-        Map<String, dynamic> response =
-            await _remoteDataSource.getTrainingDataResponse(getTrainingRequest);
-
-        return Right(response.trainingDataToDomain());
-      } catch (error) {
-        log(error.toString());
-        return Left(
-          ErrorHandler.handle(error).failure,
-        );
-      }
+      // try {
+      Map<String, dynamic> response =
+          await _remoteDataSource.getTrainingDataResponse(getTrainingRequest);
+      return Right(response.trainingDataToDomain());
+      // } catch (error) {
+      //
+      //   log(error.toString());
+      //   return Left(
+      //     ErrorHandler.handle(error).failure,
+      //   );
+      // }
     } else {
       return Left(
         DataSource.noInternetConnection.getFailure(),
@@ -140,8 +141,9 @@ class TraineesRepoImpl implements TraineesRepository {
         List<dynamic> response = await _remoteDataSource.getMatches(traineeId);
 
         return Right(MatchesEntity.fromJson(response));
-      } catch (error) {
+      } catch (error, stackTrace) {
         log(error.toString());
+        log(stackTrace.toString());
         return Left(
           ErrorHandler.handle(error).failure,
         );
@@ -154,40 +156,22 @@ class TraineesRepoImpl implements TraineesRepository {
   }
 
   @override
-  Future<Either<Failure, void>> deleteAccount() {
-    // TODO: implement deleteAccount
-    throw UnimplementedError();
-  }
-
-  @override
-  Either<Failure, TraineeData> getUser() {
-    try {
-      return Right(_remoteDataSource.getCurrentUserResponse());
-    } catch (error) {
-      return Left(ErrorHandler.handle(error).failure);
-    }
-  }
-
-
-  @override
-  Future<Either<Failure, void>> logout()async {
-    try {
-      return Right(0);
-    } catch (error) {
-      return Left(ErrorHandler.handle(error).failure);
-    }
-  }
-
-  @override
-  Future<Either<Failure, User>> updateProfile(
-      UpdateProfileRequest updateProfileRequest) async {
-    try {
-      User user =
-      await _remoteDataSource.updateProfileResponse(updateProfileRequest);
-      return Right(user);
-    } catch (error) {
+  Future<Either<Failure, void>> saveFencingTraining(
+      SaveTrainingFencingRequest addTrainingRequest) async {
+    if (_networkInfo.isConnected) {
+      try {
+        await _remoteDataSource.saveFencingTrainingResponse(addTrainingRequest);
+        return const Right(0);
+      } catch (error , stackTrace) {
+        debugPrint(error.toString());
+        debugPrintStack(stackTrace: stackTrace, label: "saveFencingTraining");
+        return Left(
+          ErrorHandler.handle(error).failure,
+        );
+      }
+    } else {
       return Left(
-        ErrorHandler.handle(error).failure,
+        DataSource.noInternetConnection.getFailure(),
       );
     }
   }

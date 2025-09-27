@@ -1,11 +1,11 @@
 import 'package:dartz/dartz.dart';
-import 'package:firesport_users/app/di.dart';
-import 'package:firesport_users/data/data_source/remote_data_source.dart';
-import 'package:firesport_users/data/network/error_handler.dart';
-import 'package:firesport_users/data/network/failure.dart';
-import 'package:firesport_users/data/network/network_info.dart';
-import 'package:firesport_users/data/network/requests.dart';
-import 'package:firesport_users/domain/repository/match_repo.dart';
+import 'package:tranex_users/app/di.dart';
+import 'package:tranex_users/data/data_source/remote_data_source.dart';
+import 'package:tranex_users/data/network/error_handler.dart';
+import 'package:tranex_users/data/network/failure.dart';
+import 'package:tranex_users/data/network/network_info.dart';
+import 'package:tranex_users/data/network/requests.dart';
+import 'package:tranex_users/domain/repository/match_repo.dart';
 
 class MatchRepoImpl extends MatchRepository {
   final RemoteDataSource _remoteDataSource = instance<RemoteDataSource>();

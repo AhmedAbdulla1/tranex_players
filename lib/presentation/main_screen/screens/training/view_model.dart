@@ -2,27 +2,27 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:dartz/dartz.dart';
-import 'package:firesport_users/app/app_prefs.dart';
-import 'package:firesport_users/app/di.dart';
-import 'package:firesport_users/data/network/failure.dart';
-import 'package:firesport_users/domain/models/models.dart';
-import 'package:firesport_users/domain/usecase/add_new_exercise_usecase.dart';
-import 'package:firesport_users/presentation/bluetooth/bluetooth_model.dart';
-import 'package:firesport_users/presentation/common/state_render/state_render.dart';
-import 'package:firesport_users/presentation/base/base_view_model.dart';
-import 'package:firesport_users/presentation/common/freezed/freezed.dart';
-import 'package:firesport_users/presentation/common/state_render/state_renderer_imp.dart';
-import 'package:firesport_users/presentation/resources/assets_manager.dart';
-import 'package:firesport_users/presentation/resources/routes_manager.dart';
+import 'package:tranex_users/app/app_prefs.dart';
+import 'package:tranex_users/app/di.dart';
+import 'package:tranex_users/data/network/failure.dart';
+import 'package:tranex_users/domain/models/models.dart';
+import 'package:tranex_users/domain/usecase/add_new_exercise_usecase.dart';
+import 'package:tranex_users/presentation/bluetooth/bluetooth_model.dart';
+import 'package:tranex_users/presentation/common/state_render/state_render.dart';
+import 'package:tranex_users/presentation/base/base_view_model.dart';
+import 'package:tranex_users/presentation/common/freezed/freezed.dart';
+import 'package:tranex_users/presentation/common/state_render/state_renderer_imp.dart';
+import 'package:tranex_users/presentation/resources/assets_manager.dart';
+import 'package:tranex_users/presentation/resources/routes_manager.dart';
+import 'package:tranex_users/presentation/wifi_scanner/device_scanner.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:rxdart/subjects.dart';
-
-
+import 'package:tranex_users/presentation/fencing_training/fencing_view.dart';
 class TrainingViewModel extends TrainingViewModelOutput {
   final AppPreferences _appPreferences = instance<AppPreferences>();
   final AddNewExerciseUseCase _addNewExerciseUseCase =
-  instance<AddNewExerciseUseCase>();
+      instance<AddNewExerciseUseCase>();
 
   // موديل الـ Bluetooth
   final BluetoothModel _bluetoothModel = BluetoothModel();
@@ -39,7 +39,7 @@ class TrainingViewModel extends TrainingViewModelOutput {
   final _trainerController = BehaviorSubject<bool>();
 
   late TrainingObject _trainingObject =
-  TrainingObject("Set Exercise", '', null, 1, true, 3);
+      TrainingObject("Set Exercise", '', null, 1, true, 3);
 
   // Inputs
   @override
@@ -121,19 +121,33 @@ class TrainingViewModel extends TrainingViewModelOutput {
   }
 
   // دالة جديدة لعرض الـ Dialog
-  void showBluetoothDialog(BuildContext context) {
-    _bluetoothModel.showDeviceDiscoveryDialog(
-      context: context,
-      onDeviceSelected: (device) {
-        print("Device selected: ${device.name}");
-        // لما تختار جهاز، انقل للشاشة الجديدة
-        Navigator.pushNamed(
-          context,
-          Routes.inTrainingScreen,
-          arguments: [device,_trainingObject.deviceType!.deviceId ==1],
+  void showScanner(BuildContext context) async {
+    if (_trainingObject.deviceType!.deviceId == 5) {
+      final selectedIp = await DeviceScanner.scanDevices(context);
+      print("device: $selectedIp");
+
+      if (selectedIp!=0 && context.mounted) {
+        Navigator.of(context, rootNavigator: true).pushNamed(
+          FencingTrainingView.routeName,
+          arguments: selectedIp,
         );
-      },
-    );
+      }
+    } else {
+      _bluetoothModel.showDeviceDiscoveryDialog(
+        context: context,
+        onDeviceSelected: (device) {
+          print("Device selected: ${device.name}");
+          if (context.mounted) {
+            Navigator.of(context, rootNavigator: true).pushNamed(
+              _trainingObject.deviceType!.deviceId != 5
+                  ? Routes.inTrainingScreen
+                  : FencingTrainingView.routeName,
+              arguments: [device],
+            );
+          }
+        },
+      );
+    }
   }
 
   // Update training object and add to streams
@@ -164,6 +178,9 @@ class TrainingViewModel extends TrainingViewModelOutput {
   }
 
   checkDataIsRight() {
+    if(_trainingObject.deviceType?.deviceId == 5) {
+      return inputTrainerDataIsRight.add(true);
+    }
     if (_trainingObject.exercises.isNotEmpty &&
         _trainingObject.weight != 0 &&
         _trainingObject.deviceType != null) {
@@ -176,7 +193,7 @@ class TrainingViewModel extends TrainingViewModelOutput {
   getDeviceTypeData(int deviceId) async {
     print(deviceId);
     Either<Failure, List<DeviceData>> result =
-    await _addNewExerciseUseCase.getDevices();
+        await _addNewExerciseUseCase.getDevices();
     result.fold((e) {
       inputState.add(ErrorState(
         stateRenderType: StateRenderType.popupErrorState,
@@ -250,33 +267,56 @@ class TrainingViewModel extends TrainingViewModelOutput {
 
 abstract class TrainingViewModelInput extends BaseViewModel {
   setExercise(String exercise);
+
   setImage(String imageUrl);
+
   setDeviceType(DeviceData deviceType);
+
   setWeight(double num);
+
   setAutostart(bool status);
+
   setIdleTime(int num);
+
   setTraining({ExerciseData? exercise});
+
   setTrainee(String teamId, String name, String id);
 
   Sink get inputAutoStart;
+
   Sink get inputImage;
+
   Sink get inputIdleTime;
+
   Sink get inputDeviceType;
+
   Sink get inputExercise;
+
   Sink get inputWeight;
+
   Sink get inputAccessPoint;
+
   Sink get inputTrainee;
+
   Sink get inputTrainerDataIsRight;
 }
 
 abstract class TrainingViewModelOutput extends TrainingViewModelInput {
   Stream<double> get outWeight;
+
   Stream<String> get outImage;
+
   Stream<DeviceData> get outDeviceType;
+
   Stream<int> get outIdleTime;
+
   Stream<bool> get outAutoStart;
+
   Stream<String> get outExercise;
+
   Stream<String> get outTrainee;
+
   Stream<DiscoveredDevice?> get outDevice;
+
   Stream<bool> get outTrainerDataIsRight;
 }

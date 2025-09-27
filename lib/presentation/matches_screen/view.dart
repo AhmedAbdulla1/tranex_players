@@ -1,10 +1,10 @@
-import 'package:firesport_users/domain/models/matches_entity.dart';
-import 'package:firesport_users/domain/models/models.dart';
-import 'package:firesport_users/presentation/analysis_screen/analysis_match.dart';
-import 'package:firesport_users/presentation/common/state_render/state_renderer_imp.dart';
-import 'package:firesport_users/presentation/matches_screen/view_model.dart';
-import 'package:firesport_users/presentation/resources/font_manager.dart';
-import 'package:firesport_users/presentation/resources/values_manager.dart';
+import 'package:tranex_users/domain/models/matches_entity.dart';
+import 'package:tranex_users/domain/models/models.dart';
+import 'package:tranex_users/presentation/analysis_screen/analysis_match.dart';
+import 'package:tranex_users/presentation/common/state_render/state_renderer_imp.dart';
+import 'package:tranex_users/presentation/matches_screen/view_model.dart';
+import 'package:tranex_users/presentation/resources/font_manager.dart';
+import 'package:tranex_users/presentation/resources/values_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -108,7 +108,8 @@ class MatchCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isLandscape =
-        MediaQuery.of(context).orientation == Orientation.landscape||MediaQuery.of(context).size.width>600;
+        MediaQuery.of(context).orientation == Orientation.landscape ||
+            MediaQuery.of(context).size.width > 600;
 
     return Card(
       elevation: 4,
@@ -124,7 +125,7 @@ class MatchCard extends StatelessWidget {
               ]);
         },
         child: Padding(
-          padding: EdgeInsets.all(AppPadding.p12),
+          padding: const EdgeInsets.all(AppPadding.p12),
           child: isLandscape
               ? _buildLandscapeLayout(context)
               : _buildPortraitLayout(context),

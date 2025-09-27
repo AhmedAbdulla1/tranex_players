@@ -1,5 +1,5 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:firesport_users/data/network/error_handler.dart';
+import 'package:tranex_users/data/network/error_handler.dart';
 
 String cacheHomeKey = 'CACHE HOME KEY';
 String cacheTeamsKey = 'CACHE Teams KEY';

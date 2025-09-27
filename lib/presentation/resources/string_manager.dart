@@ -4,19 +4,19 @@ class AppStrings {
   static const String noRouteFound = "No Route Found";
   static const String getStart = 'Get Started';
   static const String loginTitle = 'SIGN IN';
-  static const String saveAndExit ='Save And Exit';
-  static const String save  = 'Save';
-  static const String delete  = 'delete';
-  static const String teams  = 'Teams';
+  static const String saveAndExit = 'Save And Exit';
+  static const String save = 'Save';
+  static const String delete = 'delete';
+  static const String teams = 'Teams';
   static const String addNewDevice = 'Add New Device';
-      static const String loginSubTitle =
+  static const String loginSubTitle =
       'Looks like you don’t have an account. Let’s create a new account for you.';
   static const String login = 'LOGIN';
   static const String google = 'Sign Up with Google';
   static const String apple = 'Sign Up with Apple';
-  static const String haveAnAccount = "have an account?";
+  static const String alreadyHaveAnAccount = "Already have an account?";
   static const String dontHaveAnAccount = "Don’t have an account?";
-  static const String guest  = "CONTINUE AS A GUEST";
+  static const String guest = "CONTINUE AS A GUEST";
   static const String signup = 'Create Account';
   static const String signupTitle = 'SIGN UP';
   static const String signupSubTitle =
@@ -24,37 +24,39 @@ class AppStrings {
   static const String privacy =
       'By selecting Create Account below, I agree to Terms of Service & Privacy Policy';
   static const String recoverPasswordTitle = "Recover Password";
-  static const String recoverPasswordSubTitle = 'Forgot your password? Don’t worry, enter your email to reset your current password.';
-  static const String submit ='SUBMIT';
+  static const String recoverPasswordSubTitle =
+      'Forgot your password? Don’t worry, enter your email to reset your current password.';
+  static const String submit = 'SUBMIT';
   static const String verifyCodeTitle = "Verify Code";
-  static const String verifyCodeSubTitle = 'An authentication code has been sent to your email';
-  static const String verify ='VERIFY';
-  static const String enterCode ='Enter Code ';
-  static const String resendCode ="Didn’t receive a code?";
+  static const String verifyCodeSubTitle =
+      'An authentication code has been sent to your email';
+  static const String verify = 'VERIFY';
+  static const String enterCode = 'Enter Code ';
+  static const String resendCode = "Didn’t receive a code?";
   static const String resend = 'Resend';
   static const String changePasswordTitle = 'Change Password';
-  static const String changePasswordSubTitle = "Create a new, strong password that you don’t use before" ;
+  static const String changePasswordSubTitle =
+      "Create a new, strong password that you don’t use before";
   static const String newPassword = 'New Password';
   static const String confirmPassword = 'Confirm Password';
   static const String profile = 'Profile';
-  static const String bodyWeight ='Body Weight';
-  static const String height ='Height';
+  static const String bodyWeight = 'Body Weight';
+  static const String height = 'Height';
   static const String age = 'Age';
-  static const String gender= 'Gender';
-  static const String passwordError2 ="Your password could be stronger. Consider using uppercase letters and symbols.";
+  static const String gender = 'Gender';
+  static const String passwordError2 =
+      "Your password could be stronger. Consider using uppercase letters and symbols.";
   static const String bodyWeightError = 'Enter valid weight';
   static const String heightError = 'Enter valid height';
   static const String ageError = 'Enter valid age';
-  static const String updateProfile= 'Update Profile';
+  static const String updateProfile = 'Update Profile';
   static const String exercises = 'Exercises';
   static const String advanced = 'Advanced';
   static const String selectWeight = 'Select your weight';
-  static const String large ="Large";
-  static const String small ="Small";
-  static const String autoStart ="Auto Start";
-  static const String idleTime ="Idle Time";
-
-
+  static const String large = "Large";
+  static const String small = "Small";
+  static const String autoStart = "Auto Start";
+  static const String idleTime = "Idle Time";
 
   static const String skip = 'skip';
   static const String name = 'Name';
@@ -100,7 +102,6 @@ class AppStrings {
   static const services = 'Services';
   static const stores = 'Stores';
 
-
   static const String badRequestError = "Email has already been used";
   static const String noContent = "no_content";
   static const String forbiddenError = "forbidden_error";
@@ -110,8 +111,9 @@ class AppStrings {
   static const String internalServerError = "internal_server_error";
   static const String unknownError = "unknown_error";
   static const String timeoutError = "timeout_error";
-  static const String defaultError = "هناك حظا ما";
-  static const String cacheError = "لا توجد بيانات";
+  static const String defaultError =
+      "An error occurred, please try again later.";
+  static const String cacheError = "No Data Available";
   static const String noInternetError = "No Internet";
 
   static const String privacyTitle = "Doctor Hunt Apps Privacy Policy";

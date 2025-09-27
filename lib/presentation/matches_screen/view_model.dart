@@ -1,16 +1,14 @@
 import 'dart:async';
-import 'dart:ffi';
 import 'dart:io';
 
-import 'package:firesport_users/app/di.dart';
-import 'package:firesport_users/domain/models/matches_entity.dart';
-import 'package:firesport_users/domain/models/models.dart';
-import 'package:firesport_users/domain/repository/trainees_repo.dart';
-import 'package:firesport_users/domain/usecase/get_trainees.dart';
-import 'package:firesport_users/domain/usecase/matches_usecase.dart';
-import 'package:firesport_users/presentation/base/base_view_model.dart';
-import 'package:firesport_users/presentation/common/state_render/state_render.dart';
-import 'package:firesport_users/presentation/common/state_render/state_renderer_imp.dart';
+import 'package:tranex_users/app/di.dart';
+import 'package:tranex_users/domain/models/matches_entity.dart';
+import 'package:tranex_users/domain/models/models.dart';
+import 'package:tranex_users/domain/repository/trainees_repo.dart';
+import 'package:tranex_users/domain/usecase/matches_usecase.dart';
+import 'package:tranex_users/presentation/base/base_view_model.dart';
+import 'package:tranex_users/presentation/common/state_render/state_render.dart';
+import 'package:tranex_users/presentation/common/state_render/state_renderer_imp.dart';
 import 'package:rxdart/rxdart.dart';
 
 class MatchesViewModel extends MatchesViewModelOutput {
@@ -26,7 +24,7 @@ class MatchesViewModel extends MatchesViewModelOutput {
       BehaviorSubject<String>();
   final MatchesUseCase _useCase =
       MatchesUseCase(instance<TraineesRepository>());
-  late MatchesEntity originalMatches ;
+  late MatchesEntity originalMatches;
   late TraineeData traineeData;
 
   @override
@@ -48,7 +46,7 @@ class MatchesViewModel extends MatchesViewModelOutput {
     }, (r) {
       originalMatches = r;
       if (r.matches.isEmpty) {
-        inputState.add(EmptyState(message: 'لايوجد ماتشات حتي الان'));
+        inputState.add(EmptyState(message: 'No matches found'));
       } else {
         inputFilteredData.add(r);
         inputState.add(ContentState());
@@ -61,7 +59,6 @@ class MatchesViewModel extends MatchesViewModelOutput {
 
   @override
   Stream<String> get outputSearch => _searchStreamController.stream;
-
 
   @override
   Sink get inputFilteredData => _filteredDataStreamController.sink;
@@ -117,7 +114,6 @@ class MatchesViewModel extends MatchesViewModelOutput {
 }
 
 abstract class MatchesViewModelInput extends BaseViewModel {
-
   setNewCategory(String name);
 
   setNewExercise(String category, String name);

@@ -1,13 +1,14 @@
-
-import 'package:firesport_users/domain/models/matches_entity.dart';
-import 'package:firesport_users/domain/models/models.dart';
-import 'package:firesport_users/presentation/fencing_match/fencing_match_view_model.dart';
+import 'package:tranex_users/domain/models/matches_entity.dart';
+import 'package:tranex_users/domain/models/models.dart';
+import 'package:tranex_users/presentation/fencing_match/fencing_match_view_model.dart';
 
 class LoginRequest {
-  String userId;
+  String email;
+  String password;
 
   LoginRequest({
-    required this.userId,
+    required this.email,
+    required this.password,
   });
 }
 
@@ -80,7 +81,7 @@ class AddNewExerciseRequest {
 
 class GetTrainingRequest {
   int exerciseId;
-  int traineeId;
+  String traineeId;
   bool weakly ;
 
   GetTrainingRequest({
@@ -113,17 +114,17 @@ class TrainingDataRequest {
   double maxConSpeed;
   int timeBySeconds;
   double weight;
-  TrainingDataRequest({
-    required this.timeBySeconds,
-    required this.numOfSets,
-    required this.avgConSpeed,
-    required this.avgEccSpeed,
-    required this.maxEccSpeed,
-    required this.maxConSpeed,
-    required this.eccForce,
-    required this.conForce,
-    required this.weight
-  });
+
+  TrainingDataRequest(
+      {required this.timeBySeconds,
+      required this.numOfSets,
+      required this.avgConSpeed,
+      required this.avgEccSpeed,
+      required this.maxEccSpeed,
+      required this.maxConSpeed,
+      required this.eccForce,
+      required this.conForce,
+      required this.weight});
 }
 
 class PlayerTrainingRequest {
@@ -142,27 +143,16 @@ class PlayerTrainingRequest {
   });
 }
 
-// class MatchRequest {
-//   final int player1Id;
-//   final int player2Id;
-//   final int? coachId;
-//   final int durationMs;
-//   final int? winnerId;
-//   final int player1Points;
-//   final int player2Points;
-//   final List<MatchDataPoint> matchData;
-//
-//   MatchRequest({
-//     required this.player1Id,
-//     required this.player2Id,
-//     this.coachId,
-//     required this.durationMs,
-//     this.winnerId,
-//     required this.player1Points,
-//     required this.player2Points,
-//     required this.matchData,
-//   });
-// }
+class SaveTrainingFencingRequest {
+  final int exerciseId;
+  final String traineeId;
+  final TrainingFencingSession trainingData;
+
+  SaveTrainingFencingRequest(
+      {required this.exerciseId,
+      required this.traineeId,
+      required this.trainingData});
+}
 
 class TrainingDataPoint {
   final int timeInMs;
@@ -189,13 +179,14 @@ class MatchDataPoint {
     required this.direction,
   });
 }
+
 class MatchRequest {
-  final int player1Id;
-  final int player2Id;
+  final String player1Id;
+  final String player2Id;
   final int durationMs;
-  final List<MatchDataEntity> player1MatchData;
+  final List<PlayerMovementData> player1MatchData;
   final List<PointDataEntity> player1PointRecords;
-  final List<MatchDataEntity> player2MatchData;
+  final List<PlayerMovementData> player2MatchData;
   final List<PointDataEntity> player2PointRecords;
 
   MatchRequest({
@@ -221,9 +212,102 @@ class MatchDataRequest {
   });
 
   Map<String, dynamic> toJson() => {
-    'time_ms': timeInMs,
-    'speed': speed,
-    'direction': direction,
-  };
+        'T': timeInMs,
+        'S': speed,
+        'D': direction,
+      };
 }
 
+class PointDataEntity {
+  final int timeInMs;
+  final double speed;
+
+  PointDataEntity({
+    required this.speed,
+    required this.timeInMs,
+  });
+
+  factory PointDataEntity.fromJson(Map<String, dynamic> json) {
+    return PointDataEntity(
+      speed: (json['S'] as num).toDouble(),
+      timeInMs: json['T'] as int,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'S': speed,
+        'T': timeInMs,
+      };
+}
+
+class PlayerMovementData {
+  final double speed;
+  final int direction;
+  final int timeInMs;
+
+  PlayerMovementData({
+    required this.speed,
+    required this.direction,
+    required this.timeInMs,
+  });
+
+  factory PlayerMovementData.fromJson(Map<String, dynamic> json) {
+    return PlayerMovementData(
+      speed: (json['S'] as num).toDouble(),
+      direction: json['D'] as int,
+      timeInMs: json['T'] as int,
+    );
+  }
+
+  factory PlayerMovementData.fromBluetooth(
+      Map<String, dynamic> json, int timeInMs) {
+    int direction = json['direction'] as int;
+    return PlayerMovementData(
+      speed: (json['speed'] as num).toDouble(),
+      direction: direction,
+      timeInMs: timeInMs,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'S': speed,
+        'D': direction,
+        'T': timeInMs,
+      };
+}
+
+class TrainingFencingSession {
+  final String playerId;
+  final int? targetMinutes;
+  final int? targetPoints;
+  final int achievedPoints;
+  final int durationMs;
+  final String endedBy;
+  final TraineeData? traineeData;
+  final List<PlayerMovementData> movements;
+  final List<PointDataEntity> pointRecords;
+
+  TrainingFencingSession({
+    required this.playerId,
+    required this.targetMinutes,
+    required this.targetPoints,
+    required this.achievedPoints,
+    required this.durationMs,
+    required this.endedBy,
+    required this.traineeData,
+    required this.movements,
+    required this.pointRecords,
+  });
+
+  Map<String, dynamic> toJson() => {
+        'PID': playerId,
+        'TM': targetMinutes,
+        'TP': targetPoints,
+        'AP': achievedPoints,
+        'DM': durationMs,
+        'EB': endedBy,
+        'TD': traineeData?.toJson(),
+        'M': movements.map((m) => m.toJson()).toList(),
+        'PR': pointRecords.map((p) => p.toJson()).toList(),
+      };
+}

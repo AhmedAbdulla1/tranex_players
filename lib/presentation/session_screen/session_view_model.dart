@@ -1,19 +1,19 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
-import 'package:firesport_users/app/app.dart';
-import 'package:firesport_users/app/app_prefs.dart';
-import 'package:firesport_users/app/di.dart';
-import 'package:firesport_users/app/extensions.dart';
-import 'package:firesport_users/data/network/failure.dart';
-import 'package:firesport_users/domain/models/models.dart';
-import 'package:firesport_users/domain/usecase/training_data_usecase.dart';
-import 'package:firesport_users/presentation/base/base_view_model.dart';
-import 'package:firesport_users/presentation/common/state_render/state_render.dart';
-import 'package:firesport_users/presentation/common/state_render/state_renderer_imp.dart';
+import 'package:tranex_users/app/app.dart';
+import 'package:tranex_users/app/app_prefs.dart';
+import 'package:tranex_users/app/di.dart';
+import 'package:tranex_users/app/extensions.dart';
+import 'package:tranex_users/data/network/failure.dart';
+import 'package:tranex_users/domain/models/models.dart';
+import 'package:tranex_users/domain/usecase/training_data_usecase.dart';
+import 'package:tranex_users/presentation/base/base_view_model.dart';
+import 'package:tranex_users/presentation/common/state_render/state_render.dart';
+import 'package:tranex_users/presentation/common/state_render/state_renderer_imp.dart';
 import 'package:dartz/dartz.dart';
-import 'package:firesport_users/presentation/session_screen/ble_device_connector.dart';
-import 'package:firesport_users/presentation/session_screen/widgets/custom_bar_chart.dart';
+import 'package:tranex_users/presentation/session_screen/ble_device_connector.dart';
+import 'package:tranex_users/presentation/session_screen/widgets/custom_bar_chart.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:rxdart/rxdart.dart';
 
@@ -136,11 +136,21 @@ class InTrainingViewModel extends InTrainingViewModelOutput {
         characteristicId: Uuid.parse(characteristicUuid),
         deviceId: _device.id,
       );
-      _bleConnector.connect(device.id);
+      await _bleConnector.connectAndWait(
+        device.id,
+        timeout: const Duration(seconds: 8),
+        maxRetries: 3,
+        initialBackoff: const Duration(milliseconds: 300),
+      );
+
+// سيب الجهاز يخلص الـ service discovery كويس
+      await Future.delayed(const Duration(milliseconds: 400));
+
+      // _bleConnector.connect(device.id);
       await _ble.requestMtu(deviceId: device.id, mtu: 250);
       _notificationsStream = _ble.subscribeToCharacteristic(_rxCharacteristic);
       inputConnection.add(true);
-      inputStatus.add(SessionStatus.idle);
+      inputStatus.add(SessionStatus.waitingRFID);
       inputState.add(ContentState());
 
       _monitorConnection(device);
@@ -169,10 +179,13 @@ class InTrainingViewModel extends InTrainingViewModelOutput {
       try {
         final jsonData = jsonDecode(message);
         if (jsonData.containsKey('rfidUID')) {
-          return;
+          await checkTraineeExist(jsonData['rfidUID']);
         } else if (jsonData.containsKey('speed')) {
           print("Received data: $jsonData");
           startListening ? _processSpeedData(jsonData) : null;
+        }
+        else if (jsonData.containsKey('point')) {
+          print("Received data: $jsonData");
         }
       } catch (e) {
         print(e.toString());
@@ -193,7 +206,7 @@ class InTrainingViewModel extends InTrainingViewModelOutput {
     double speed = DataModel._formatNum(data['speed']); // Speed in rps
     int dir = data['direction'] ?? 1; // Default direction if not provided
     double adjustedSpeed = speed * dir;
-    adjustedSpeed *= random.nextInt(5);
+    // adjustedSpeed *= random.nextInt(5);
     _lastDirection ?? (_lastDirection = dir);
     inputSpeed.add(adjustedSpeed);
     _internalTime += 0.1; // 100ms interval
@@ -328,11 +341,24 @@ class InTrainingViewModel extends InTrainingViewModelOutput {
     inputConnection.add(false);
   }
 
+  Future checkTraineeExist(String traineeId) async {
+    inputStatus.add(SessionStatus.waitingForCheck);
+    Either<Failure, TraineeData> request =
+        await _trainingUsecase.checkTraineeExistence(traineeId);
+    request.fold((l) {
+      inputStatus.add(SessionStatus.errorRFID);
+    }, (r) {
+      inputStatus.add(SessionStatus.idle);
+      traineeData = r;
+      sendOk();
+    });
+  }
+
   int counter = 0;
 
   @override
   void dispose() async {
-    await _bleConnector.disconnect(_device.id);
+    await _bleConnector.disconnect();
     _bleConnector.dispose();
     _statusStreamController.close();
     _dataStreamController.close();

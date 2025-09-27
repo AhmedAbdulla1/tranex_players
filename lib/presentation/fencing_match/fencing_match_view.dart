@@ -1,25 +1,21 @@
-import 'package:firesport_users/domain/models/matches_entity.dart';
-import 'package:firesport_users/domain/models/models.dart';
-import 'package:firesport_users/presentation/fencing_match/analysis_match_landscape.dart';
-import 'package:firesport_users/presentation/fencing_match/analysis_match_view.dart';
-import 'package:firesport_users/presentation/fencing_match/fencing_match_landscape.dart';
-import 'package:firesport_users/presentation/fencing_match/widgets/nfc_statuse_widget.dart';
-import 'package:firesport_users/presentation/resources/assets_manager.dart';
+import 'package:tranex_users/data/network/requests.dart';
+import 'package:tranex_users/domain/models/matches_entity.dart';
+import 'package:tranex_users/domain/models/models.dart';
+import 'package:tranex_users/presentation/common/reusable/player_header.dart';
+import 'package:tranex_users/presentation/fencing_match/analysis_match_landscape.dart';
+import 'package:tranex_users/presentation/fencing_match/fencing_match_landscape.dart';
+import 'package:tranex_users/presentation/fencing_match/fencing_match_view_model.dart';
+import 'package:tranex_users/presentation/common/reusable/charts/live_chart.dart';
+import 'package:tranex_users/presentation/fencing_match/widgets/nfc_status_widget.dart';
+import 'package:tranex_users/presentation/resources/assets_manager.dart';
+import 'package:tranex_users/presentation/resources/color_manager.dart';
+import 'package:tranex_users/presentation/resources/font_manager.dart';
+import 'package:tranex_users/presentation/resources/style_manager.dart';
+import 'package:tranex_users/presentation/resources/values_manager.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
-import 'package:firesport_users/presentation/common/reusable/custom_button.dart';
-import 'package:firesport_users/presentation/common/state_render/state_renderer_imp.dart';
-import 'package:firesport_users/presentation/resources/color_manager.dart';
-import 'package:firesport_users/presentation/resources/font_manager.dart';
-import 'package:firesport_users/presentation/resources/style_manager.dart';
-import 'package:firesport_users/presentation/resources/values_manager.dart';
-import 'package:firesport_users/presentation/fencing_match/fencing_screen.dart';
-import 'package:stop_watch_timer/stop_watch_timer.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:lottie/lottie.dart';
-import 'fencing_match_view_model.dart';
+import 'package:stop_watch_timer/stop_watch_timer.dart';
 
-// ويدجت لعرض بيانات اللاعب أثناء المباراة
 class PlayerDashboard extends StatelessWidget {
   final int playerId;
   final FencingMatchViewModel viewModel;
@@ -35,78 +31,124 @@ class PlayerDashboard extends StatelessWidget {
     return Container(
       padding: EdgeInsets.symmetric(vertical: AppPadding.p16.w),
       color: playerId == 1
-          ? Colors.blue.withOpacity(0.1)
-          : Colors.red.withOpacity(0.1),
+          ? Colors.blue.withValues(alpha: 0.1)
+          : Colors.red.withValues(
+              alpha: 0.1,
+            ),
       child: Column(
         children: [
           StreamBuilder<TraineeData>(
-              stream: null,
+              stream: playerId == 1
+                  ? viewModel.outputPlayer1Data
+                  : viewModel.outputPlayer2Data,
               builder: (context, snapshot) {
-                return Text(
-                  snapshot.data?.traineeName ?? "Player ${playerId}',",
-                  style: getBoldStyle(
-                      fontSize: FontSize.s20, color: ColorManager.black),
-                );
+                return snapshot.hasData
+                    ? Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+                        child: PlayerHeader(
+                          playerId: playerId,
+                          traineeData: snapshot.data!,
+                        ),
+                      )
+                    : Container();
               }),
           SizedBox(height: AppSize.s20.h),
+          Expanded(
+            child: StreamBuilder<PlayerMovementData>(
+                stream: playerId == 1
+                    ? viewModel.outputPlayer1MatchData
+                    : viewModel.outputPlayer2MatchData,
+                builder: (context, snapshot) {
+                  return CustomLiveChart(
+                    playerId: playerId,
+                    matchDataStream: playerId == 1
+                        ? viewModel.outputPlayer1MatchData
+                        : viewModel.outputPlayer2MatchData,
+                    pointRecordStream: playerId == 1
+                        ? viewModel.outputPlayer1Points
+                        : viewModel.outputPlayer2Points,
+                  );
+                }),
+          ),
           StreamBuilder<PointDataEntity>(
               stream: playerId == 1
                   ? viewModel.outputPlayer1Points
                   : viewModel.outputPlayer2Points,
               builder: (context, snapshot) {
                 return Text(
-                  'Points: ${playerId == 1 ? viewModel.player1Info
-                      .pointRecords.length : viewModel.player2Info
-                      .pointRecords.length}',
+                  'Points: ${playerId == 1 ? viewModel.player1Info.pointRecords.length : viewModel.player2Info.pointRecords.length}',
                   style: getRegularStyle(
-                      fontSize: FontSize.s16, color: ColorManager.black),
+                    fontSize: FontSize.s20,
+                    color: ColorManager.black,
+                  ),
                 );
-              }
-          ),
+              }),
           SizedBox(height: AppSize.s20.h),
-          Expanded(
-            child: StreamBuilder<MatchDataEntity>(
-                stream: playerId == 1
-                    ? viewModel.outputPlayer1MatchData :
-                viewModel.outputPlayer2MatchData,
-                builder: (context, snapshot) {
-                  return Center(
-                    child: snapshot.data != null
-                        ? FencingDashboard(
-                      dataModel: snapshot.data,
-                    )
-                        : const Text(
-                      'No Data Yet',
-                      style: TextStyle(
-                          color: Colors.black,
-                          fontSize: 18,
-                          fontWeight: FontWeight.w400),
-                    ),
-                  );
-                }
-            ),
-          ),
-          SizedBox(height: AppSize.s20.h),
-          ElevatedButton(
-            onPressed: viewModel.currentStatus == MatchStatus.inMatch
-                ? () {
-              viewModel
-                  .addPointManually(playerId); // إضافة نقطة يدويًا
-            }
-                : null,
-            child: const Text(
-              'Point',
-              style: TextStyle(color: Colors.white),
-            ),
-          ),
+          buildPointButtons(),
           SizedBox(height: AppSize.s20.h),
         ],
       ),
     );
   }
+
+  Widget buildPointButtons() {
+    return Padding(
+      padding: EdgeInsets.only(left: 12.w, right: 12.w),
+      child: SizedBox(
+        width: double.infinity,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            ElevatedButton(
+              onPressed: viewModel.currentStatus == MatchStatus.inMatch
+                  ? () {
+                      viewModel.addPointManually(playerId);
+                    }
+                  : null,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: ColorManager.primary,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8.r),
+                ),
+              ),
+              child: Text(
+                '+',
+                style: TextStyle(
+                  fontSize: FontSize.s20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+            12.verticalSpace,
+            ElevatedButton(
+              onPressed: viewModel.currentStatus == MatchStatus.inMatch
+                  ? () {
+                      viewModel.subtractPointManually(playerId);
+                    }
+                  : null,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: ColorManager.primary,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8.r),
+                ),
+              ),
+              child: Text(
+                '-',
+                style: TextStyle(
+                  fontSize: FontSize.s20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
-// Custom Widget لمحتوى الماتش
 class MatchContentWidget extends StatelessWidget {
   final FencingMatchViewModel viewModel;
   final StopWatchTimer stopWatchTimer;
@@ -125,50 +167,55 @@ class MatchContentWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bool isControlEnabled =
+        status == MatchStatus.paused || status == MatchStatus.inMatch;
+    print("MatchContentWidget build: status=$status");
     return Column(
       children: [
-        StreamBuilder<int>(
-          stream: stopWatchTimer.rawTime,
-          initialData: 0,
-          builder: (context, snapshot) {
-            final displayTime = StopWatchTimer.getDisplayTime(
-              snapshot.data!,
-              milliSecond: false,
-              hours: false,
-            );
-            return Padding(
-              padding: EdgeInsets.symmetric(vertical: AppPadding.p20.h),
-              child: Text(
-                displayTime,
-                style: getBoldStyle(
-                  fontSize: FontSize.s25,
-                  color: ColorManager.black,
-                ),
-              ),
-            );
-          },
+        Column(
+          children: [
+            SizedBox(height: 10.h),
+            StreamBuilder<int>(
+              stream: stopWatchTimer.rawTime,
+              initialData: 0,
+              builder: (context, snapshot) {
+                final displayTime = StopWatchTimer.getDisplayTime(
+                  snapshot.data!,
+                  milliSecond: false,
+                  hours: false,
+                );
+                return Text(
+                  displayTime,
+                  style: TextStyle(
+                    fontSize: FontSize.s20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
+                );
+              },
+            ),
+            SizedBox(height: 10.h),
+            StreamBuilder<int>(
+              stream: actualPlayTimer.rawTime,
+              initialData: 0,
+              builder: (context, snapshot) {
+                final displayTime = StopWatchTimer.getDisplayTime(
+                  snapshot.data!,
+                  milliSecond: false,
+                  hours: false,
+                );
+                return Text(
+                  'Actual Play Time: $displayTime',
+                  style: TextStyle(
+                    fontSize: FontSize.s16,
+                    color: Colors.black,
+                  ),
+                );
+              },
+            ),
+          ],
         ),
-        StreamBuilder<int>(
-          stream: actualPlayTimer.rawTime,
-          initialData: 0,
-          builder: (context, snapshot) {
-            final displayTime = StopWatchTimer.getDisplayTime(
-              snapshot.data!,
-              milliSecond: false,
-              hours: false,
-            );
-            return Padding(
-              padding: EdgeInsets.symmetric(vertical: AppPadding.p10.h),
-              child: Text(
-                'Actual Play Time: $displayTime',
-                style: getRegularStyle(
-                  fontSize: FontSize.s16,
-                  color: ColorManager.black,
-                ),
-              ),
-            );
-          },
-        ),
+        20.verticalSpace,
         Expanded(
           child: Row(
             children: [
@@ -177,37 +224,166 @@ class MatchContentWidget extends StatelessWidget {
             ],
           ),
         ),
-        _buildControlButtons(),
+        SizedBox(
+          height: 150.h,
+          child: Column(
+            children: [
+              if (status == MatchStatus.waitingBluetoothPlayer1 ||
+                  status == MatchStatus.waitingBluetoothPlayer2)
+                Column(
+                  children: [
+                    Text(
+                      status == MatchStatus.waitingBluetoothPlayer1
+                          ? 'Please select device for Player 1'
+                          : 'Please select device for Player 2',
+                      style: TextStyle(
+                        fontSize: FontSize.s16,
+                        color: Colors.black,
+                      ),
+                    ),
+                    SizedBox(height: 10.h),
+                    Padding(
+                      padding: EdgeInsets.only(left: 12.w, right: 12.w),
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            print("Scan for Devices button pressed");
+                            viewModel.chooseDevice(context);
+                          },
+                          child: Text(
+                            'Scan for Devices',
+                            style: TextStyle(
+                              fontSize: FontSize.s20,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              const Spacer(flex: 2),
+              Visibility(
+                visible: status == MatchStatus.paused ||
+                    status == MatchStatus.waitingNFC2,
+                child: Padding(
+                  padding: EdgeInsets.only(left: 12.w, right: 12.w),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: isControlEnabled ? viewModel.startMatch : null,
+                      child: Text(
+                        'Start',
+                        style: TextStyle(
+                          fontSize: FontSize.s20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              Visibility(
+                visible: status == MatchStatus.inMatch,
+                child: Padding(
+                  padding: EdgeInsets.only(left: 12.w, right: 12.w),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: isControlEnabled ? viewModel.sendPause : null,
+                      child: Text(
+                        'Stop',
+                        style: TextStyle(
+                          fontSize: FontSize.s20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              Visibility(
+                visible: status == MatchStatus.inMatch,
+                child: Padding(
+                  padding: EdgeInsets.only(left: 12.w, right: 12.w),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: isControlEnabled
+                          ? () {
+                              viewModel.addPointManually(1);
+                              viewModel.addPointManually(2);
+                            }
+                          : null,
+                      child: Text(
+                        'Double',
+                        style: TextStyle(
+                          fontSize: FontSize.s20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              Padding(
+                padding: EdgeInsets.only(left: 12.w, right: 12.w),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: isControlEnabled ? viewModel.endMatch : null,
+                    child: Text(
+                      'End',
+                      style: TextStyle(
+                        fontSize: FontSize.s20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        20.verticalSpace
       ],
     );
   }
 
   Widget _buildPlayerSide(int playerId) {
+    print("Building PlayerSide for Player $playerId: status=$status");
     switch (status) {
+      case MatchStatus.waitingBluetoothPlayer1:
+      case MatchStatus.waitingBluetoothPlayer2:
+        return const Center(
+          child: Text('Waiting for WebSocket device...'),
+        );
       case MatchStatus.waitingNFC1:
         return const NfCWidget(iconPath: JsonAssets.enterCard);
-
       case MatchStatus.waitingNFC2:
         if (playerId == 1) {
           return PlayerDashboard(playerId: 1, viewModel: viewModel);
         } else {
           return const NfCWidget(iconPath: JsonAssets.enterCard);
         }
-
-      case MatchStatus.waitingForCheck1:
+      case MatchStatus.checkingNFC1:
         if (playerId == 1) {
           return const NfCWidget(iconPath: JsonAssets.loadingCard);
         } else {
           return const NfCWidget(iconPath: JsonAssets.enterCard);
         }
-
-      case MatchStatus.waitingForCheck2:
+      case MatchStatus.checkingNFC2:
         if (playerId == 1) {
           return PlayerDashboard(playerId: 1, viewModel: viewModel);
         } else {
           return const NfCWidget(iconPath: JsonAssets.loadingCard);
         }
-
       case MatchStatus.errorNFC1:
         if (playerId == 1) {
           return const NfCWidget(iconPath: JsonAssets.errorCard);
@@ -220,64 +396,65 @@ class MatchContentWidget extends StatelessWidget {
         } else {
           return const NfCWidget(iconPath: JsonAssets.errorCard);
         }
-
       default:
         return PlayerDashboard(playerId: playerId, viewModel: viewModel);
     }
   }
 
-  Widget _buildControlButtons() {
-    return Padding(
-      padding: EdgeInsets.symmetric(
-        horizontal: AppPadding.p40.w,
-        vertical: AppPadding.p20.h,
-      ),
-      child: Column(
-        children: [
-          if (status == MatchStatus.paused) ...[
-            customElevatedButtonWithoutStream(
-              onPressed: () {
-                viewModel.startMatch(); // تعديل لـ Resume بدل Start
-              },
-              child: const Text(
-                'Start',
-                style: TextStyle(color: Colors.white),
-              ),
-            ),
-            const SizedBox(height: 16),
-          ],
-          if (status == MatchStatus.waitingNFC2) ...[
-            customElevatedButtonWithoutStream(
-              onPressed: () {
-                viewModel.startMatch();
-              },
-              child: const Text(
-                'Start',
-                style: TextStyle(color: Colors.white),
-              ),
-            ),
-            const SizedBox(height: 16),
-          ],
-          customElevatedButtonWithoutStream(
-            onPressed: () {
-              viewModel.endMatch();
-            },
-            child: const Text(
-              'End',
-              style: TextStyle(color: Colors.white),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+// Widget _buildControlButtons() {
+//   return Padding(
+//     padding: EdgeInsets.symmetric(
+//       horizontal: AppPadding.p40.w,
+//       vertical: AppPadding.p20.h,
+//     ),
+//     child: Column(
+//       children: [
+//         if (status == MatchStatus.paused) ...[
+//           customElevatedButtonWithoutStream(
+//             onPressed: () {
+//               print("Resume button pressed");
+//               viewModel.resumeMatch();
+//             },
+//             child: const Text(
+//               'Resume',
+//               style: TextStyle(color: Colors.white),
+//             ),
+//           ),
+//           const SizedBox(height: 16),
+//         ],
+//         if (status == MatchStatus.waitingNFC2) ...[
+//           customElevatedButtonWithoutStream(
+//             onPressed: () {
+//               print("Start button pressed");
+//               viewModel.startMatch();
+//             },
+//             child: const Text(
+//               'Start',
+//               style: TextStyle(color: Colors.white),
+//             ),
+//           ),
+//           const SizedBox(height: 16),
+//         ],
+//         customElevatedButtonWithoutStream(
+//           onPressed: () {
+//             print("End button pressed");
+//             viewModel.endMatch();
+//           },
+//           child: const Text(
+//             'End',
+//             style: TextStyle(color: Colors.white),
+//           ),
+//         ),
+//       ],
+//     ),
+//   );
+// }
 }
 
-// الشاشة الرئيسية
 class FencingMatchView extends StatefulWidget {
-  final DiscoveredDevice device;
+  static const routeName = '/fencing_match';
 
-  const FencingMatchView({super.key, required this.device});
+  const FencingMatchView({super.key});
 
   @override
   _FencingMatchViewState createState() => _FencingMatchViewState();
@@ -296,13 +473,13 @@ class _FencingMatchViewState extends State<FencingMatchView> {
   @override
   void initState() {
     super.initState();
-    _viewModel.device = widget.device;
-    _viewModel.context = context;
     _viewModel.start();
-
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      print("Initiating scanForDevices on init");
+      _viewModel.chooseDevice(context);
+    });
     _actualPlayTimer.rawTime.listen((time) {
-      final timeInSeconds = time;
-      _viewModel.updateMatchTime(timeInSeconds);
+      _viewModel.updateMatchTime(time);
     });
   }
 
@@ -314,30 +491,45 @@ class _FencingMatchViewState extends State<FencingMatchView> {
   }
 
   @override
-  void dispose() {
+  void dispose() async {
+    print("Disposing FencingMatchView");
     _viewModel.dispose();
-    _stopWatchTimer.dispose();
-    _actualPlayTimer.dispose();
+    await _stopWatchTimer.dispose();
+    await _actualPlayTimer.dispose();
     super.dispose();
   }
+
   Future<bool?> _showBackDialog(BuildContext context) {
     return showDialog<bool>(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Are you sure?',style: TextStyle(color: Colors.black),),
-          content: const Text('Are you sure you want to leave this page?',style: TextStyle(color: Colors.black),),
+          title: const Text(
+            'Are you sure?',
+            style: TextStyle(color: Colors.black),
+          ),
+          content: const Text(
+            'Are you sure you want to leave this page?',
+            style: TextStyle(color: Colors.black),
+          ),
           actions: <Widget>[
             TextButton(
-              style: TextButton.styleFrom(textStyle: Theme.of(context).textTheme.labelLarge),
-              child: const Text('Never mind',),
+              style: TextButton.styleFrom(
+                  textStyle: Theme.of(context).textTheme.labelLarge),
+              child: const Text(
+                'Never mind',
+              ),
               onPressed: () {
                 Navigator.pop(context, false);
               },
             ),
             TextButton(
-              style: TextButton.styleFrom(textStyle: Theme.of(context).textTheme.labelLarge),
-              child: const Text('Leave',style: TextStyle(color: Colors.red),),
+              style: TextButton.styleFrom(
+                  textStyle: Theme.of(context).textTheme.labelLarge),
+              child: const Text(
+                'Leave',
+                style: TextStyle(color: Colors.red),
+              ),
               onPressed: () {
                 Navigator.pop(context, true);
               },
@@ -348,48 +540,37 @@ class _FencingMatchViewState extends State<FencingMatchView> {
     );
   }
 
-
   @override
   Widget build(BuildContext context) {
     return OrientationBuilder(
-      builder: (context, orientation) =>
-          SafeArea(
-            right: false,
-            left: false,
-            child: PopScope(
-              canPop: false,
-              // The result argument contains the pop result that is defined in `_PageTwo`.
-              onPopInvokedWithResult: (bool didPop, result) async {
-                if (didPop) {
-                  return;
-                }
-                final bool shouldPop = await _showBackDialog(context) ?? false;
-                if (context.mounted && shouldPop) {
-                  Navigator.pop(context, );
-                }
-              },
-
-              child: Scaffold(
-                backgroundColor: ColorManager.white,
-                appBar: orientation == Orientation.portrait
-                    ? AppBar(
+      builder: (context, orientation) => SafeArea(
+        right: false,
+        left: false,
+        // child:
+        // PopScope(
+        //   canPop: false,
+        //   onPopInvokedWithResult: (bool didPop, result) async {
+        //     if (didPop) {
+        //       return;
+        //     }
+        //     final bool shouldPop = await _showBackDialog(context) ?? false;
+        //     if (context.mounted && shouldPop) {
+        //       dispose();
+        //       Navigator.pop(context);
+        //     }
+        //   },
+        child: Scaffold(
+          backgroundColor: ColorManager.white,
+          appBar: orientation == Orientation.portrait
+              ? AppBar(
                   title: const Text('Fencing Match'),
                   centerTitle: true,
                 )
-                    : null,
-                body: StreamBuilder<StateFlow>(
-                  stream: _viewModel.outputState,
-                  builder: (context, snapshot) {
-                    return snapshot.data?.getScreenWidget(
-                      context,
-                      _buildMatchContent(orientation),
-                    ) ??
-                        _buildMatchContent(orientation);
-                  },
-                ),
-              ),
-            ),
-          ),
+              : null,
+          body: _buildMatchContent(orientation),
+        ),
+      ),
+      // ),
     );
   }
 
@@ -397,45 +578,54 @@ class _FencingMatchViewState extends State<FencingMatchView> {
     return StreamBuilder<MatchStatus>(
       stream: _viewModel.outputMatchStatus,
       builder: (context, snapshot) {
-        final status = snapshot.data ?? MatchStatus.waitingNFC1;
+        final status = snapshot.data ?? MatchStatus.waitingBluetoothPlayer1;
+        print("MatchStatus StreamBuilder: status=$status");
 
-        // التحكم في الـ Timers
         if (status == MatchStatus.inMatch && !_isMainTimerStarted) {
+          print("Starting timers");
           _stopWatchTimer.onStartTimer();
           _actualPlayTimer.onStartTimer();
           _isMainTimerStarted = true;
         }
         if (status == MatchStatus.paused) {
-          _actualPlayTimer.onStopTimer(); // وقف الوقت الفعلي فقط
+          print("Pausing actualPlayTimer");
+          _actualPlayTimer.onStopTimer();
         }
         if (status == MatchStatus.inMatch && _isMainTimerStarted) {
-          _actualPlayTimer.onStartTimer(); // استئناف الوقت الفعلي
+          print("Resuming actualPlayTimer");
+          _actualPlayTimer.onStartTimer();
         }
         if (status == MatchStatus.ended) {
+          print("Stopping timers and showing analysis");
           _stopWatchTimer.onStopTimer();
           _actualPlayTimer.onStopTimer();
           _isMainTimerStarted = false;
           return FencingAnalysisLandscapeView(
             player1Info: _viewModel.getPlayer1Info(),
             player2Info: _viewModel.getPlayer2Info(),
-            onSave: _viewModel.saveMatchData,
+            onSave: () async {
+              bool? saved = await _viewModel.saveMatch.call();
+              if (saved != null && saved) {
+                  _resetMatch();
+              }
+            },
           );
         }
 
         return orientation == Orientation.portrait
             ? MatchContentWidget(
-          viewModel: _viewModel,
-          stopWatchTimer: _stopWatchTimer,
-          actualPlayTimer: _actualPlayTimer,
-          resetMatch: _resetMatch,
-          status: status,
-        )
+                viewModel: _viewModel,
+                stopWatchTimer: _stopWatchTimer,
+                actualPlayTimer: _actualPlayTimer,
+                resetMatch: _resetMatch,
+                status: status,
+              )
             : LandScapeMatchContentWidget(
-            viewModel: _viewModel,
-            stopWatchTimer: _stopWatchTimer,
-            actualPlayTimer: _actualPlayTimer,
-            resetMatch: _resetMatch,
-            status: status);
+                viewModel: _viewModel,
+                stopWatchTimer: _stopWatchTimer,
+                actualPlayTimer: _actualPlayTimer,
+                resetMatch: _resetMatch,
+                status: status);
       },
     );
   }

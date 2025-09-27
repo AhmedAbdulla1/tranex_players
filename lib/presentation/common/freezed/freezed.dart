@@ -1,5 +1,5 @@
-import 'package:firesport_users/app/constant.dart';
-import 'package:firesport_users/domain/models/models.dart';
+import 'package:tranex_users/app/constant.dart';
+import 'package:tranex_users/domain/models/models.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'freezed.freezed.dart';

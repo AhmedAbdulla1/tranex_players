@@ -1,8 +1,8 @@
 import 'package:dartz/dartz.dart';
-import 'package:firesport_users/data/network/failure.dart';
-import 'package:firesport_users/data/network/requests.dart';
-import 'package:firesport_users/data/repository/match_repo_impl.dart';
-import 'package:firesport_users/domain/repository/match_repo.dart';
+import 'package:tranex_users/data/network/failure.dart';
+import 'package:tranex_users/data/network/requests.dart';
+import 'package:tranex_users/data/repository/match_repo_impl.dart';
+import 'package:tranex_users/domain/repository/match_repo.dart';
 
 class FencingUsecase {
   final MatchRepository repository = MatchRepoImpl();

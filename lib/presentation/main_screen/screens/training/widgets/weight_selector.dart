@@ -1,4 +1,4 @@
-import 'package:firesport_users/domain/models/models.dart';
+import 'package:tranex_users/domain/models/models.dart';
 import 'package:flutter/material.dart';
 
 class WeightSelector extends StatefulWidget {

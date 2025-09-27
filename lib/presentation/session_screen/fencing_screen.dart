@@ -1,4 +1,4 @@
-import 'package:firesport_users/presentation/session_screen/session_view_model.dart';
+import 'package:tranex_users/presentation/session_screen/session_view_model.dart';
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
 import 'package:flutter_screenutil/flutter_screenutil.dart';

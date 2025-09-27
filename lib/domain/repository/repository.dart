@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:firesport_users/data/network/failure.dart';
+import 'package:tranex_users/data/network/failure.dart';
 import 'package:dartz/dartz.dart';
 
 abstract class Repository {

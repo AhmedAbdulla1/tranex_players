@@ -1,23 +1,23 @@
 import 'dart:io';
 
-import 'package:firesport_users/app/di.dart';
-import 'package:firesport_users/domain/models/models.dart';
-import 'package:firesport_users/presentation/add_new_exercise/view.dart';
-import 'package:firesport_users/presentation/common/state_render/state_renderer_imp.dart';
-import 'package:firesport_users/presentation/exercises/view_model.dart';
-import 'package:firesport_users/presentation/resources/assets_manager.dart';
-import 'package:firesport_users/presentation/resources/color_manager.dart';
-import 'package:firesport_users/presentation/resources/font_manager.dart';
-import 'package:firesport_users/presentation/resources/string_manager.dart';
-import 'package:firesport_users/presentation/resources/style_manager.dart';
-import 'package:firesport_users/presentation/resources/values_manager.dart';
+import 'package:tranex_users/app/di.dart';
+import 'package:tranex_users/domain/models/models.dart';
+import 'package:tranex_users/presentation/add_new_exercise/view.dart';
+import 'package:tranex_users/presentation/common/state_render/state_renderer_imp.dart';
+import 'package:tranex_users/presentation/exercises/view_model.dart';
+import 'package:tranex_users/presentation/resources/assets_manager.dart';
+import 'package:tranex_users/presentation/resources/color_manager.dart';
+import 'package:tranex_users/presentation/resources/font_manager.dart';
+import 'package:tranex_users/presentation/resources/string_manager.dart';
+import 'package:tranex_users/presentation/resources/style_manager.dart';
+import 'package:tranex_users/presentation/resources/values_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 
 class ExercisesView extends StatefulWidget {
   const ExercisesView({super.key});
-
+  static const String routeName = 'Exercises';
   @override
   State<ExercisesView> createState() => _ExercisesViewState();
 }

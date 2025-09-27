@@ -1,7 +1,7 @@
 import 'dart:io';
 
-import 'package:firesport_users/data/network/failure.dart';
-import 'package:firesport_users/domain/usecase/upload_image_usecase.dart';
+import 'package:tranex_users/data/network/failure.dart';
+import 'package:tranex_users/domain/usecase/upload_image_usecase.dart';
 import 'package:dartz/dartz.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 

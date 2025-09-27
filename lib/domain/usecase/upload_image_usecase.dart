@@ -1,10 +1,10 @@
 import 'dart:io';
 
-import 'package:firesport_users/app/di.dart';
+import 'package:tranex_users/app/di.dart';
 import 'package:dartz/dartz.dart';
-import 'package:firesport_users/data/network/failure.dart';
-import 'package:firesport_users/domain/repository/repository.dart';
-import 'package:firesport_users/domain/usecase/base_usecase.dart';
+import 'package:tranex_users/data/network/failure.dart';
+import 'package:tranex_users/domain/repository/repository.dart';
+import 'package:tranex_users/domain/usecase/base_usecase.dart';
 
 
 

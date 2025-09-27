@@ -1,26 +1,26 @@
 import 'dart:async';
+import 'dart:developer';
 import 'dart:io';
 
-import 'package:firesport_users/domain/models/models.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:firesport_users/data/network/failure.dart';
-import 'package:firesport_users/data/network/requests.dart';
-import 'package:firesport_users/domain/usecase/user_usecase.dart';
-import 'package:firesport_users/presentation/base/base_view_model.dart';
-import 'package:firesport_users/presentation/common/reusable/upload_image_service.dart';
-import 'package:firesport_users/presentation/common/state_render/state_render.dart';
-import 'package:firesport_users/presentation/common/state_render/state_renderer_imp.dart';
 import 'package:dartz/dartz.dart';
+import 'package:tranex_users/data/network/failure.dart';
+import 'package:tranex_users/data/network/requests.dart';
+import 'package:tranex_users/domain/usecase/user_usecase.dart';
+import 'package:tranex_users/presentation/base/base_view_model.dart';
+import 'package:tranex_users/presentation/common/reusable/upload_image_service.dart';
+import 'package:tranex_users/presentation/common/state_render/state_render.dart';
+import 'package:tranex_users/presentation/common/state_render/state_renderer_imp.dart';
 import 'package:flutter/material.dart';
-
 import 'package:rxdart/rxdart.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
 import '../common/freezed/freezed.dart';
 import '../resources/string_manager.dart';
 
 class ProfileDetailsViewModel extends ProfileDetailsViewModelOutput {
   final StreamController<File> _profilePictureController =
       StreamController<File>.broadcast();
-  final StreamController<TraineeData> _streamController = BehaviorSubject<TraineeData>();
+  final StreamController<User> _streamController = BehaviorSubject<User>();
   final StreamController _nameController = StreamController<String>.broadcast();
   final StreamController<bool> isUserRegisterSuccessfullyStreamController =
       StreamController.broadcast();
@@ -52,14 +52,42 @@ class ProfileDetailsViewModel extends ProfileDetailsViewModelOutput {
       inputData.add(
         user,
       );
-     imagePath = user.photo;
+      if (user.userMetadata != null &&
+          user.userMetadata!['photo_url'] != null) {
+        imagePath = user.userMetadata!['photo_url']!;
+      }
 
       signupObject = signupObject.copyWith(
-        name: user.traineeName
+        name: user.userMetadata!['display_name'] ?? '',
+        email: user.email ?? '',
       );
       inputState.add(
         ContentState(),
       );
+    });
+  }
+
+  Future<bool> connectToHeadCoach(String code) async {
+    inputState
+        .add(LoadingState(stateRenderType: StateRenderType.popupLoadingState));
+    final Either<Failure, bool> result =
+        await _userUsecase.connectToHeadCoach(code: code);
+    return result.fold((l) {
+      log("$l", name: "Left");
+      inputState.add(ErrorState(
+        stateRenderType: StateRenderType.popupErrorState,
+        message: l.message,
+        retryAction: () {
+          inputState.add(ContentState());
+        },
+      ));
+      return false;
+    }, (r) {
+      log("$r", name: "Right");
+      inputState.add(SuccessState("Connected Successfully"));
+
+      inputState.add(ContentState());
+      return true;
     });
   }
 
@@ -87,6 +115,7 @@ class ProfileDetailsViewModel extends ProfileDetailsViewModelOutput {
         return false;
       }, (data) {
         imageUrl = data;
+        log("image url $imageUrl");
         return true;
       });
     }
@@ -113,7 +142,7 @@ class ProfileDetailsViewModel extends ProfileDetailsViewModelOutput {
         return true;
       });
     }
-   return uploadImageResult;
+    return uploadImageResult;
   }
 
   @override
@@ -186,7 +215,7 @@ class ProfileDetailsViewModel extends ProfileDetailsViewModelOutput {
   Sink get inputData => _streamController.sink;
 
   @override
-  Stream<TraineeData> get outputData => _streamController.stream;
+  Stream<User> get outputData => _streamController.stream;
 }
 
 abstract class ProfileDetailsViewModelInput extends BaseViewModel {
@@ -207,7 +236,7 @@ abstract class ProfileDetailsViewModelInput extends BaseViewModel {
 
 abstract class ProfileDetailsViewModelOutput
     extends ProfileDetailsViewModelInput {
-  Stream<TraineeData> get outputData;
+  Stream<User> get outputData;
 
   Stream<File> get profilePictureOutput;
 

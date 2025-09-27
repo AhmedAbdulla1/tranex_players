@@ -1,10 +1,10 @@
-import 'package:firesport_users/domain/models/models.dart';
-import 'package:firesport_users/presentation/common/reusable/custom_button.dart';
-import 'package:firesport_users/presentation/resources/color_manager.dart';
-import 'package:firesport_users/presentation/resources/font_manager.dart';
-import 'package:firesport_users/presentation/resources/string_manager.dart';
-import 'package:firesport_users/presentation/resources/style_manager.dart';
-import 'package:firesport_users/presentation/session_screen/widgets/custom_bar_chart.dart';
+import 'package:tranex_users/domain/models/models.dart';
+import 'package:tranex_users/presentation/common/reusable/custom_button.dart';
+import 'package:tranex_users/presentation/resources/color_manager.dart';
+import 'package:tranex_users/presentation/resources/font_manager.dart';
+import 'package:tranex_users/presentation/resources/string_manager.dart';
+import 'package:tranex_users/presentation/resources/style_manager.dart';
+import 'package:tranex_users/presentation/session_screen/widgets/custom_bar_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 

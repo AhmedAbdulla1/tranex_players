@@ -13,8 +13,8 @@ class ChartTestScreen extends StatefulWidget {
 }
 
 class _ChartTestScreenState extends State<ChartTestScreen> {
-  List<ChartData> speedData1 = []; // بيانات الرسم البياني الأول
-  List<ChartData> speedData2 = []; // بيانات الرسم البياني الثاني
+  List<ChartData1> speedData1 = []; // بيانات الرسم البياني الأول
+  List<ChartData1> speedData2 = []; // بيانات الرسم البياني الثاني
   double currentTimeInSeconds = 0;
   late ZoomPanBehavior _zoomPanBehavior1;
   late ZoomPanBehavior _zoomPanBehavior2;
@@ -62,11 +62,11 @@ class _ChartTestScreenState extends State<ChartTestScreen> {
 
       // توليد بيانات للرسم البياني الأول
       double speed1 = random.nextDouble() * 20 - 10;
-      speedData1.add(ChartData(currentTimeInSeconds, speed1));
+      speedData1.add(ChartData1(currentTimeInSeconds, speed1));
 
       // توليد بيانات للرسم البياني الثاني
       double speed2 = random.nextDouble() * 20 - 10;
-      speedData2.add(ChartData(currentTimeInSeconds, speed2));
+      speedData2.add(ChartData1(currentTimeInSeconds, speed2));
 
       // تحديث النطاق المرئي (6 ثواني)
       double newMinX = currentTimeInSeconds - 3;
@@ -158,10 +158,10 @@ class _ChartTestScreenState extends State<ChartTestScreen> {
                             ),
                           ),
                           series: <CartesianSeries>[
-                            LineSeries<ChartData, double>(
+                            LineSeries<ChartData1, double>(
                               dataSource: speedData1,
-                              xValueMapper: (ChartData data, _) => data.timeInSeconds,
-                              yValueMapper: (ChartData data, _) => data.speed,
+                              xValueMapper: (ChartData1 data, _) => data.timeInSeconds,
+                              yValueMapper: (ChartData1 data, _) => data.speed,
                               color: Colors.blue,
                               width: 2,
                               markerSettings: const MarkerSettings(isVisible: false),
@@ -199,10 +199,10 @@ class _ChartTestScreenState extends State<ChartTestScreen> {
                         ),
                       ),
                       series: <CartesianSeries>[
-                        LineSeries<ChartData, double>(
+                        LineSeries<ChartData1, double>(
                           dataSource: speedData2,
-                          xValueMapper: (ChartData data, _) => data.timeInSeconds,
-                          yValueMapper: (ChartData data, _) => data.speed,
+                          xValueMapper: (ChartData1 data, _) => data.timeInSeconds,
+                          yValueMapper: (ChartData1 data, _) => data.speed,
                           color: Colors.red, // لون مختلف للرسم الثاني
                           width: 2,
                           markerSettings: const MarkerSettings(isVisible: false),
@@ -263,9 +263,9 @@ class _ChartTestScreenState extends State<ChartTestScreen> {
   }
 }
 
-class ChartData {
+class ChartData1 {
   final double timeInSeconds;
   final double speed;
 
-  ChartData(this.timeInSeconds, this.speed);
+  ChartData1(this.timeInSeconds, this.speed);
 }

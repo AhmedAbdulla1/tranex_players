@@ -46,14 +46,14 @@ extension IntegerExtension on int {
 }
 
 extension FristName on String {
-  String toCapitalizedCase(){
-    if(length!=0){
-    final characters = this.characters.toList();
-    characters[0]=this[0].toUpperCase();
-    int index= indexOf(' ', 0);
-    characters[index + 1]=this[index+1].toUpperCase();
+  String toCapitalizedCase() {
+    if (length != 0) {
+      final characters = this.characters.toList();
+      characters[0] = this[0].toUpperCase();
+      int index = indexOf(' ', 0);
+      characters[index + 1] = this[index + 1].toUpperCase();
       return characters.join('');
-    }else {
+    } else {
       return this;
     }
   }
@@ -66,20 +66,19 @@ extension FristName on String {
   //   }
   // }
 
-
   String firstName() {
-    int startIndex = 0, indexOfSpace=0;
+    int startIndex = 0, indexOfSpace = 0;
     indexOfSpace = indexOf(' ', startIndex);
-      if (indexOfSpace == -1) {
-        //-1 is when character is not found
-        return this;
-      }
-    return substring(0,indexOfSpace);
+    if (indexOfSpace == -1) {
+      //-1 is when character is not found
+      return this;
+    }
+    return substring(0, indexOfSpace);
   }
-  // String doctorName
+// String doctorName
 }
-extension Space on double? {
 
+extension Space on double? {
   double formatNum({int decimals = 2}) {
     if (this == null) return 0.0;
     if (this is num) {

@@ -1,16 +1,19 @@
 // fencing_analysis_landscape_view.dart
 import 'dart:async';
 import 'dart:math' as math;
-import 'package:firesport_users/domain/models/matches_entity.dart';
-import 'package:firesport_users/presentation/fencing_match/widgets/custom_pie_chart.dart';
-import 'package:firesport_users/presentation/fencing_match/widgets/range_selector.dart';
+
+import 'package:tranex_users/data/network/requests.dart';
+import 'package:tranex_users/domain/models/matches_entity.dart';
+import 'package:tranex_users/presentation/fencing_match/fencing_match_view_model.dart';
+import 'package:tranex_users/presentation/fencing_match/widgets/custom_pie_chart.dart';
+import 'package:tranex_users/presentation/fencing_match/widgets/range_selector.dart';
+import 'package:tranex_users/presentation/resources/font_manager.dart';
+import 'package:tranex_users/presentation/resources/values_manager.dart';
 import 'package:flutter/material.dart';
-import 'package:firesport_users/presentation/resources/font_manager.dart';
-import 'package:firesport_users/presentation/resources/values_manager.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:syncfusion_flutter_sliders/sliders.dart';
-import 'package:firesport_users/presentation/fencing_match/fencing_match_view_model.dart';
+
 import '../common/reusable/custom_button.dart';
 import 'widgets/speed_line_chart.dart';
 
@@ -27,13 +30,12 @@ class FencingAnalysisLandscapeView extends StatefulWidget {
   });
 
   @override
-  _FencingAnalysisLandscapeViewState createState() =>
+  State<FencingAnalysisLandscapeView> createState() =>
       _FencingAnalysisLandscapeViewState();
 }
 
 class _FencingAnalysisLandscapeViewState
     extends State<FencingAnalysisLandscapeView> {
-  bool _isDataPrinted = false;
   late ZoomPanBehavior zoomPanBehavior;
   late double rangeStart;
   late double rangeEnd;
@@ -44,11 +46,6 @@ class _FencingAnalysisLandscapeViewState
   @override
   void initState() {
     super.initState();
-    if (!_isDataPrinted) {
-      _printMatchData(widget.player1Info, "Player 1");
-      _printMatchData(widget.player2Info, "Player 2");
-      _isDataPrinted = true;
-    }
 
     // Calculate the initial range based on the full data
     final double maxTime1 = widget.player1Info.matchData.isNotEmpty
@@ -79,15 +76,6 @@ class _FencingAnalysisLandscapeViewState
     super.dispose();
   }
 
-  void _printMatchData(PlayerInfo playerInfo, String playerName) {
-    print("=== $playerName Match Data ===");
-    for (var data in playerInfo.matchData) {
-      print(
-          "Time: ${data.timeInMs}ms, Speed: ${data.speed}, Direction: ${data.direction}");
-    }
-    print('pointRecords: ${playerInfo.pointRecords.length}');
-  }
-
   // Filter matchData and pointRecords based on the selected range
   PlayerInfo _filterPlayerInfo(
       PlayerInfo playerInfo, double start, double end) {
@@ -114,7 +102,11 @@ class _FencingAnalysisLandscapeViewState
   Widget build(BuildContext context) {
     if (widget.player1Info.matchData.isEmpty &&
         widget.player2Info.matchData.isEmpty) {
-      return const Center(child: Text("No data available for analysis",style: TextStyle(color: Colors.black),));
+      return const Center(
+          child: Text(
+        "No data available for analysis",
+        style: TextStyle(color: Colors.black),
+      ));
     }
 
     final double maxTime1 = widget.player1Info.matchData.isNotEmpty
@@ -167,9 +159,8 @@ class _FencingAnalysisLandscapeViewState
                                   filteredPlayer1Info, filteredPlayer2Info),
                               _buildQuickStatsSection(
                                   filteredPlayer1Info, filteredPlayer2Info),
-                              SizedBox(height: AppSize.s10),
+                              const SizedBox(height: AppSize.s10),
                               _buildSaveButton(),
-
                             ],
                           );
                         },
@@ -186,94 +177,115 @@ class _FencingAnalysisLandscapeViewState
   }
 
   Widget _buildPlayerHeader() {
-    final isPlayer1Winner = widget.player1Info.pointRecords.length > widget.player2Info.pointRecords.length;
-    final isPlayer2Winner = widget.player2Info.pointRecords.length > widget.player1Info.pointRecords.length;
-    final isTie = widget.player1Info.pointRecords.length == widget.player2Info.pointRecords.length;
+    final isPlayer1Winner = widget.player1Info.pointRecords.length >
+        widget.player2Info.pointRecords.length;
+    final isPlayer2Winner = widget.player2Info.pointRecords.length >
+        widget.player1Info.pointRecords.length;
+    final isTie = widget.player1Info.pointRecords.length ==
+        widget.player2Info.pointRecords.length;
 
     return Container(
-      padding: EdgeInsets.symmetric(vertical: AppPadding.p10.h, horizontal: AppPadding.p16.w),
-      color: Colors.grey[200],
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Row(
-            children: [
-              CircleAvatar(
-                radius: AppSize.s20.r,
-                backgroundColor: Colors.blue,
-                foregroundImage: widget.player1Info.playerData.photo.isNotEmpty
-                    ? NetworkImage(widget.player1Info.playerData.photo)
-                    : null,
-                child: widget.player1Info.playerData.photo.isEmpty
-                    ? Text(
-                  widget.player1Info.playerData.traineeName.isNotEmpty
-                      ? widget.player1Info.playerData.traineeName[0].toUpperCase()
-                      : 'P1',
-                  style: const TextStyle(color: Colors.white),
-                )
-                    : null,
-              ),
-              SizedBox(width: AppSize.s8.w),
-              Text(
-                widget.player1Info.playerData.traineeName,
-                style: TextStyle(
-                  fontSize: FontSize.s18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.blue,
-                ),
-              ),
-              if (isPlayer1Winner) ...[
-                SizedBox(width: AppSize.s8.w),
-                Text(
-                  '👑',
-                  style: TextStyle(fontSize: FontSize.s18),
-                ),
-              ],
-            ],
-          ),
-          if (isTie) ...[
-            Text(
-              '🤝',
-              style: TextStyle(fontSize: FontSize.s22),
-            ),
-          ],
-          Row(
-            children: [
-              CircleAvatar(
-                radius: AppSize.s20.r,
-                backgroundColor: Colors.red,
-                foregroundImage: widget.player2Info.playerData.photo.isNotEmpty
-                    ? NetworkImage(widget.player2Info.playerData.photo)
-                    : null,
-                child: widget.player2Info.playerData.photo.isEmpty
-                    ? Text(
-                  widget.player2Info.playerData.traineeName.isNotEmpty
-                      ? widget.player2Info.playerData.traineeName[0].toUpperCase()
-                      : 'P2',
-                  style: const TextStyle(color: Colors.white),
-                )
-                    : null,
-              ),
-              SizedBox(width: AppSize.s8.w),
-              Text(
-                widget.player2Info.playerData.traineeName,
-                style: TextStyle(
-                  fontSize: FontSize.s18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.red,
-                ),
-              ),
-              if (isPlayer2Winner) ...[
-                SizedBox(width: AppSize.s8.w),
-                Text(
-                  '👑',
-                  style: TextStyle(fontSize: FontSize.s18),
-                ),
-              ],
-            ],
-          ),
-        ],
+      padding: EdgeInsets.symmetric(
+        vertical: AppPadding.p10.h,
+        horizontal: AppPadding.p16.w,
       ),
+      color: Colors.grey[200],
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final isSmallScreen = constraints.maxWidth < 600;
+
+          return isSmallScreen
+              ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    _buildPlayerInfo(
+                      name: widget.player1Info.playerData.traineeName,
+                      photoUrl: widget.player1Info.playerData.photo,
+                      color: Colors.blue,
+                      isWinner: isPlayer1Winner,
+                      fallback: 'P1',
+                    ),
+                    if (isTie)
+                      Padding(
+                        padding: EdgeInsets.symmetric(vertical: 6.h),
+                        child: Text('🤝',
+                            style: TextStyle(fontSize: FontSize.s22.sp)),
+                      ),
+                    _buildPlayerInfo(
+                      name: widget.player2Info.playerData.traineeName,
+                      photoUrl: widget.player2Info.playerData.photo,
+                      color: Colors.red,
+                      isWinner: isPlayer2Winner,
+                      fallback: 'P2',
+                    ),
+                  ],
+                )
+              : Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    _buildPlayerInfo(
+                      name: widget.player1Info.playerData.traineeName,
+                      photoUrl: widget.player1Info.playerData.photo,
+                      color: Colors.blue,
+                      isWinner: isPlayer1Winner,
+                      fallback: 'P1',
+                    ),
+                    if (isTie)
+                      Text('🤝', style: TextStyle(fontSize: FontSize.s22.sp)),
+                    _buildPlayerInfo(
+                      name: widget.player2Info.playerData.traineeName,
+                      photoUrl: widget.player2Info.playerData.photo,
+                      color: Colors.red,
+                      isWinner: isPlayer2Winner,
+                      fallback: 'P2',
+                    ),
+                  ],
+                );
+        },
+      ),
+    );
+  }
+
+  Widget _buildPlayerInfo({
+    required String name,
+    required String photoUrl,
+    required Color color,
+    required bool isWinner,
+    required String fallback,
+  }) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        CircleAvatar(
+          radius: AppSize.s20.r,
+          backgroundColor: color,
+          foregroundImage: photoUrl.isNotEmpty ? NetworkImage(photoUrl) : null,
+          child: photoUrl.isEmpty
+              ? Text(
+                  name.isNotEmpty ? name[0].toUpperCase() : fallback,
+                  style:
+                      TextStyle(color: Colors.white, fontSize: FontSize.s14.sp),
+                )
+              : null,
+        ),
+        SizedBox(width: AppSize.s8.w),
+        ConstrainedBox(
+          constraints: BoxConstraints(maxWidth: 120.w),
+          child: Text(
+            name,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: FontSize.s16.sp,
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
+          ),
+        ),
+        if (isWinner) ...[
+          SizedBox(width: AppSize.s8.w),
+          Text('👑', style: TextStyle(fontSize: FontSize.s18.sp)),
+        ],
+      ],
     );
   }
 
@@ -492,14 +504,14 @@ class _FencingAnalysisLandscapeViewState
     );
   }
 
-  double _calculateAverageSpeed(List<MatchDataEntity> matchData) {
+  double _calculateAverageSpeed(List<PlayerMovementData> matchData) {
     if (matchData.isEmpty) return 0.0;
     double totalSpeed =
         matchData.fold(0.0, (sum, data) => sum + data.speed.abs());
     return double.parse((totalSpeed / matchData.length).toStringAsFixed(1));
   }
 
-  double _calculateMaxForwardSpeed(List<MatchDataEntity> matchData) {
+  double _calculateMaxForwardSpeed(List<PlayerMovementData> matchData) {
     var forwardSpeeds = matchData
         .where((data) => data.direction == 1)
         .map((data) => data.speed.abs());
@@ -508,7 +520,7 @@ class _FencingAnalysisLandscapeViewState
         : double.parse(forwardSpeeds.reduce(math.max).toStringAsFixed(1));
   }
 
-  double _calculateMaxBackwardSpeed(List<MatchDataEntity> matchData) {
+  double _calculateMaxBackwardSpeed(List<PlayerMovementData> matchData) {
     var backwardSpeeds = matchData
         .where((data) => data.direction == -1)
         .map((data) => data.speed.abs());
@@ -517,7 +529,7 @@ class _FencingAnalysisLandscapeViewState
         : double.parse(backwardSpeeds.reduce(math.max).toStringAsFixed(1));
   }
 
-  int _calculateDirectionChanges(List<MatchDataEntity> matchData) {
+  int _calculateDirectionChanges(List<PlayerMovementData> matchData) {
     if (matchData.length < 2) return 0;
     return matchData
         .asMap()
@@ -528,7 +540,8 @@ class _FencingAnalysisLandscapeViewState
         .length;
   }
 
-  double _calculateAverageTimeBetweenPoints(List<PointDataEntity> pointRecords) {
+  double _calculateAverageTimeBetweenPoints(
+      List<PointDataEntity> pointRecords) {
     if (pointRecords.length < 2) return 0.0;
     double totalTime = 0.0;
     for (int i = 1; i < pointRecords.length; i++) {

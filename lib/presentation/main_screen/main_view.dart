@@ -1,14 +1,15 @@
-import 'package:firesport_users/app/di.dart';
-import 'package:firesport_users/presentation/resources/color_manager.dart';
-import 'package:firesport_users/presentation/resources/values_manager.dart';
-import 'package:flutter/material.dart';
 import 'package:curved_labeled_navigation_bar/curved_navigation_bar.dart';
 import 'package:curved_labeled_navigation_bar/curved_navigation_bar_item.dart';
+import 'package:tranex_users/app/di.dart';
+import 'package:tranex_users/presentation/resources/color_manager.dart';
+import 'package:tranex_users/presentation/resources/values_manager.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+
 import 'main_view_model.dart';
 import 'screens/dashboard/view.dart';
-import 'screens/training/view.dart';
 import 'screens/profile/view.dart';
+import 'screens/training/view.dart';
 
 class MainView extends StatefulWidget {
   const MainView({Key? key}) : super(key: key);
@@ -31,68 +32,69 @@ class _MainViewState extends State<MainView> {
     const TrainingView(),
     const ProfileView(),
   ];
-
+  GlobalKey showCaseKey = GlobalKey();
   @override
   Widget build(BuildContext context) {
     return OrientationBuilder(
       builder: (context, orientation) {
         if (orientation == Orientation.portrait) {
-          // Portrait Mode: استخدام BottomNavigationBar
-          return Scaffold(
-            resizeToAvoidBottomInset: false,
-            body: SafeArea(
-              child: StreamBuilder<int>(
-                stream: _viewModel.outIndex,
-                builder: (context, snapshot) => screens[snapshot.data ?? 0],
-              ),
-            ),
-            bottomNavigationBar: StreamBuilder<int>(
-              stream: _viewModel.outIndex,
-              builder: (context, snapshot) => CurvedNavigationBar(
-                iconPadding: AppPadding.p14.h,
-                backgroundColor: Colors.transparent,
-                color: ColorManager.simiBlack,
-                buttonBackgroundColor: ColorManager.simiBlack,
-                height: AppSize.s65,
-                index: snapshot.data ?? 0,
-                onTap: (index) {
-                  _viewModel.setIndex(index);
-                },
-                animationDuration: const Duration(
-                  milliseconds: 500,
+          return SafeArea(
+            top: false,
+            left: false,
+            right: false,
+            child: Scaffold(
+              resizeToAvoidBottomInset: false,
+              body: SafeArea(
+                child: StreamBuilder<int>(
+                  stream: _viewModel.outIndex,
+                  builder: (context, snapshot) => screens[snapshot.data ?? 0],
                 ),
-                items: [
-                  CurvedNavigationBarItem(
-                    child: Icon(
-                      Icons.dashboard_sharp,
-                      color: ColorManager.white,
-                    ),
-                    label: "DashBoard",
-                    labelStyle: TextStyle(
-                      color: ColorManager.white,
-                    ),
+              ),
+              bottomNavigationBar: StreamBuilder<int>(
+                stream: _viewModel.outIndex,
+                builder: (context, snapshot) => CurvedNavigationBar(
+                  iconPadding: AppPadding.p14.h,
+                  backgroundColor: ColorManager.white,
+                  color: ColorManager.primary,
+                  buttonBackgroundColor: ColorManager.primary,
+                  height: AppSize.s65,
+                  index: snapshot.data ?? 0,
+                  onTap: (index) {
+                    _viewModel.setIndex(index);
+                  },
+                  animationDuration: const Duration(
+                    milliseconds: 500,
                   ),
-                  CurvedNavigationBarItem(
-                    child: Icon(
-                      Icons.model_training_outlined,
-                      color: ColorManager.white,
+                  items: [
+                    CurvedNavigationBarItem(
+                      child: Icon(
+                        Icons.dashboard_sharp,
+                        color: ColorManager.white,
+                      ),
+                      label: "DashBoard",
+                      labelStyle: TextStyle(
+                          color: ColorManager.white, fontWeight: FontWeight.bold),
                     ),
-                    label: "Training",
-                    labelStyle: TextStyle(
-                      color: ColorManager.white,
+                    CurvedNavigationBarItem(
+                      child: Icon(
+                        Icons.model_training_outlined,
+                        color: ColorManager.white,
+                      ),
+                      label: "Training",
+                      labelStyle: TextStyle(
+                          color: ColorManager.white, fontWeight: FontWeight.bold),
                     ),
-                  ),
-                  CurvedNavigationBarItem(
-                    child: Icon(
-                      Icons.person_2_rounded,
-                      color: ColorManager.white,
+                    CurvedNavigationBarItem(
+                      child: Icon(
+                        Icons.person_2_rounded,
+                        color: ColorManager.white,
+                      ),
+                      label: "Profile",
+                      labelStyle: TextStyle(
+                          color: ColorManager.white, fontWeight: FontWeight.bold),
                     ),
-                    label: "Profile",
-                    labelStyle: TextStyle(
-                      color: ColorManager.white,
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           );
@@ -103,12 +105,13 @@ class _MainViewState extends State<MainView> {
             body: SafeArea(
               right: false,
               left: false,
+              bottom: false,
               child: Row(
                 children: [
                   // Navigation على الجانب الأيسر
                   Container(
                     width: 100, // عرض ثابت للـ Navigation
-                    color: ColorManager.simiBlack,
+                    color: ColorManager.primary,
                     child: StreamBuilder<int>(
                       stream: _viewModel.outIndex,
                       builder: (context, snapshot) {
@@ -123,7 +126,7 @@ class _MainViewState extends State<MainView> {
                               isSelected: currentIndex == 0,
                             ),
                             _buildNavItem(
-                              icon: Icons.model_training_outlined,
+                              icon: Icons.track_changes_outlined,
                               label: "Training",
                               index: 1,
                               isSelected: currentIndex == 1,
@@ -144,7 +147,7 @@ class _MainViewState extends State<MainView> {
                     child: StreamBuilder<int>(
                       stream: _viewModel.outIndex,
                       builder: (context, snapshot) =>
-                      screens[snapshot.data ?? 0],
+                          screens[snapshot.data ?? 0],
                     ),
                   ),
                 ],
@@ -172,7 +175,9 @@ class _MainViewState extends State<MainView> {
         padding: EdgeInsets.symmetric(vertical: 10.h, horizontal: 8.w),
         margin: EdgeInsets.symmetric(vertical: 5.h),
         decoration: BoxDecoration(
-          color: isSelected ? ColorManager.primary.withOpacity(0.2) : Colors.transparent,
+          color: isSelected
+              ? ColorManager.primary.withOpacity(0.2)
+              : Colors.transparent,
           borderRadius: BorderRadius.circular(10.r),
         ),
         child: Column(

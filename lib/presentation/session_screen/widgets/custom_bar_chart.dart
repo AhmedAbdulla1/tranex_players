@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
-import 'package:firesport_users/presentation/resources/color_manager.dart';
+import 'package:tranex_users/presentation/resources/color_manager.dart';
 
 class ChartData {
   final double eccForce; // Eccentric

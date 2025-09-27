@@ -2,17 +2,17 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:dartz/dartz.dart';
-import 'package:firesport_users/domain/models/models.dart';
-import 'package:firesport_users/app/app_prefs.dart';
-import 'package:firesport_users/app/di.dart';
-import 'package:firesport_users/data/network/failure.dart';
-import 'package:firesport_users/domain/usecase/user_usecase.dart';
-import 'package:firesport_users/presentation/base/base_view_model.dart';
-import 'package:firesport_users/presentation/bluetooth/bluetooth_model.dart';
-import 'package:firesport_users/presentation/common/state_render/state_render.dart';
-import 'package:firesport_users/presentation/common/state_render/state_renderer_imp.dart';
-import 'package:firesport_users/presentation/resources/assets_manager.dart';
-import 'package:firesport_users/presentation/resources/routes_manager.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:tranex_users/app/app_prefs.dart';
+import 'package:tranex_users/app/di.dart';
+import 'package:tranex_users/data/network/failure.dart';
+import 'package:tranex_users/domain/usecase/user_usecase.dart';
+import 'package:tranex_users/presentation/base/base_view_model.dart';
+import 'package:tranex_users/presentation/bluetooth/bluetooth_model.dart';
+import 'package:tranex_users/presentation/common/state_render/state_render.dart';
+import 'package:tranex_users/presentation/common/state_render/state_renderer_imp.dart';
+import 'package:tranex_users/presentation/resources/assets_manager.dart';
+import 'package:tranex_users/presentation/resources/routes_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:rxdart/rxdart.dart';
@@ -25,7 +25,7 @@ class ProfileViewModel extends ProfileViewModelOutput {
 
   final StreamController<String> _profilePictureController =
       StreamController<String>.broadcast();
-  final StreamController<TraineeData> _dataStreamController = BehaviorSubject<TraineeData>();
+  final StreamController<User> _dataStreamController = BehaviorSubject<User>();
 
   final BluetoothModel _bluetoothModel = BluetoothModel();
 
@@ -46,11 +46,10 @@ class ProfileViewModel extends ProfileViewModelOutput {
     }
     return tempFile;
   }
-  void showBluetoothDialog(BuildContext context) {
+  void showBluetoothDialog(BuildContext context, Function onDeviceSelected) {
     _bluetoothModel.showDeviceDiscoveryDialog(
       context: context,
       onDeviceSelected: (device) {
-        print("Device selected: ${device.name}");
         Navigator.pushNamed(
           context,
           Routes.fencingMatchScreen,
@@ -75,9 +74,9 @@ class ProfileViewModel extends ProfileViewModelOutput {
               inputState.add(ContentState());
             }),
       );
-    }, (trainee) {
-      inputData.add(trainee);
-      setProfilePicture(trainee.photo ?? '');
+    }, (user) {
+      inputData.add(user);
+      setProfilePicture(user.recoverySentAt ?? '');
     });
 
     // debugPrint(userData.get(0)!.image);
@@ -137,10 +136,10 @@ class ProfileViewModel extends ProfileViewModelOutput {
   }
 
   @override
-  Sink<TraineeData> get inputData => _dataStreamController.sink;
+  Sink<User> get inputData => _dataStreamController.sink;
 
   @override
-  Stream<TraineeData> get outData => _dataStreamController.stream;
+  Stream<User> get outData => _dataStreamController.stream;
 }
 
 abstract class ProfileViewModelInput extends BaseViewModel {
@@ -148,11 +147,11 @@ abstract class ProfileViewModelInput extends BaseViewModel {
 
   Sink<String> get profilePictureInput;
 
-  Sink<TraineeData> get inputData;
+  Sink<User> get inputData;
 }
 
 abstract class ProfileViewModelOutput extends ProfileViewModelInput {
   Stream<String> get profilePictureOutput;
 
-  Stream<TraineeData> get outData;
+  Stream<User> get outData;
 }

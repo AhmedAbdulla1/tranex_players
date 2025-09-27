@@ -1,12 +1,15 @@
-import 'package:firesport_users/domain/models/matches_entity.dart';
-import 'package:firesport_users/domain/models/models.dart';
-import 'package:firesport_users/presentation/fencing_match/fencing_match_view_model.dart';
-import 'package:firesport_users/presentation/fencing_match/widgets/control_panel.dart';
-import 'package:firesport_users/presentation/fencing_match/widgets/live_chart.dart';
-import 'package:firesport_users/presentation/fencing_match/widgets/nfc_statuse_widget.dart';
-import 'package:firesport_users/presentation/resources/assets_manager.dart';
-import 'package:firesport_users/presentation/resources/color_manager.dart';
-import 'package:firesport_users/presentation/resources/font_manager.dart';
+import 'package:tranex_users/data/network/requests.dart';
+import 'package:tranex_users/domain/models/matches_entity.dart';
+import 'package:tranex_users/domain/models/models.dart';
+import 'package:tranex_users/presentation/common/reusable/player_header.dart';
+import 'package:tranex_users/presentation/fencing_match/fencing_match_view_model.dart';
+import 'package:tranex_users/presentation/fencing_match/widgets/control_panel.dart';
+import 'package:tranex_users/presentation/common/reusable/charts/live_chart.dart';
+import 'package:tranex_users/presentation/fencing_match/widgets/nfc_status_widget.dart';
+import 'package:tranex_users/presentation/resources/assets_manager.dart';
+import 'package:tranex_users/presentation/resources/color_manager.dart';
+import 'package:tranex_users/presentation/resources/font_manager.dart';
+import 'package:tranex_users/presentation/resources/style_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:stop_watch_timer/stop_watch_timer.dart';
@@ -29,6 +32,7 @@ class LandScapeMatchContentWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    print("LandScapeMatchContentWidget build: status=$status");
     return Column(
       children: [
         Expanded(
@@ -48,7 +52,8 @@ class LandScapeMatchContentWidget extends StatelessWidget {
                       onEndPressed: viewModel.endMatch,
                       stopWatchTimer: stopWatchTimer,
                       actualPlayTimer: actualPlayTimer,
-                      matchStatus: status)),
+                      matchStatus: status,
+                      viewModel: viewModel)),
               Expanded(child: _buildPlayerSide(1)),
               Expanded(child: _buildPlayerSide(2)),
             ],
@@ -59,31 +64,39 @@ class LandScapeMatchContentWidget extends StatelessWidget {
   }
 
   Widget _buildPlayerSide(int playerId) {
+    print("Building PlayerSide for Player $playerId: status=$status");
     switch (status) {
+      case MatchStatus.waitingBluetoothPlayer1:
+      case MatchStatus.waitingBluetoothPlayer2:
+        return Center(
+          child: Text(
+            'Waiting for Connect to device...',
+            style: getRegularStyle(
+              fontSize: FontSize.s16,
+              color: ColorManager.black,
+            ),
+          ),
+        );
       case MatchStatus.waitingNFC1:
         return const NfCWidget(iconPath: JsonAssets.enterCard);
-
       case MatchStatus.waitingNFC2:
         if (playerId == 1) {
           return PlayerSection(playerId: 1, viewModel: viewModel);
         } else {
           return const NfCWidget(iconPath: JsonAssets.enterCard);
         }
-
-      case MatchStatus.waitingForCheck1:
+      case MatchStatus.checkingNFC1:
         if (playerId == 1) {
           return const NfCWidget(iconPath: JsonAssets.loadingCard);
         } else {
           return const NfCWidget(iconPath: JsonAssets.enterCard);
         }
-
-      case MatchStatus.waitingForCheck2:
+      case MatchStatus.checkingNFC2:
         if (playerId == 1) {
           return PlayerSection(playerId: 1, viewModel: viewModel);
         } else {
           return const NfCWidget(iconPath: JsonAssets.loadingCard);
         }
-
       case MatchStatus.errorNFC1:
         if (playerId == 1) {
           return const NfCWidget(iconPath: JsonAssets.errorCard);
@@ -96,62 +109,9 @@ class LandScapeMatchContentWidget extends StatelessWidget {
         } else {
           return const NfCWidget(iconPath: JsonAssets.errorCard);
         }
-
       default:
         return PlayerSection(playerId: playerId, viewModel: viewModel);
     }
-  }
-}
-
-class PlayerHeader extends StatelessWidget {
-  final String playerName;
-  final String? playerImage;
-  final int playerId;
-
-  const PlayerHeader({
-    super.key,
-    required this.playerId,
-    required this.playerName,
-    this.playerImage,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    Color color = playerId == 1 ? Colors.blue : Colors.red;
-    return Container(
-      padding: EdgeInsets.all(6.h),
-      decoration: BoxDecoration(
-        color: playerId == 1 ? color.withOpacity(0.3) : color.withOpacity(0.3),
-        border: Border.all(color: ColorManager.simiBlue),
-        borderRadius: BorderRadius.circular(8.r),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            playerName.isNotEmpty
-                ? playerName.substring(0, 1).toUpperCase() +
-                    playerName.substring(1)
-                : 'Unknown',
-            style: TextStyle(
-              fontSize: 8.sp,
-              fontWeight: FontWeight.bold,
-              color: color,
-            ),
-          ),
-          CircleAvatar(
-            radius: 25.r,
-            backgroundColor: color,
-            child: CircleAvatar(
-              radius: 24.r,
-              foregroundImage: playerImage != null && playerImage!.isNotEmpty
-                  ? NetworkImage(playerImage!)
-                  : const AssetImage(ImageAssets.personal) as ImageProvider,
-            ),
-          ),
-        ],
-      ),
-    );
   }
 }
 
@@ -166,7 +126,7 @@ class PlayerSection extends StatefulWidget {
   });
 
   @override
-  _PlayerSectionState createState() => _PlayerSectionState();
+  State<PlayerSection> createState() => _PlayerSectionState();
 }
 
 class _PlayerSectionState extends State<PlayerSection>
@@ -216,10 +176,10 @@ class _PlayerSectionState extends State<PlayerSection>
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.all(10.h),
+      padding: EdgeInsets.symmetric(horizontal: 10.w),
       color: widget.playerId == 1
-          ? Colors.blue.withOpacity(0.1)
-          : Colors.red.withOpacity(0.1),
+          ? Colors.blue.withValues(alpha: 0.1)
+          : Colors.red.withValues(alpha: 0.1),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
@@ -231,8 +191,7 @@ class _PlayerSectionState extends State<PlayerSection>
                 return snapshot.hasData
                     ? PlayerHeader(
                         playerId: widget.playerId,
-                        playerName: snapshot.data!.traineeName,
-                        playerImage: snapshot.data!.photo,
+                        traineeData: snapshot.data!,
                       )
                     : Container();
               }),
@@ -270,7 +229,7 @@ class _PlayerSectionState extends State<PlayerSection>
                               color: (widget.playerId == 1
                                       ? Colors.blue
                                       : Colors.red)
-                                  .withOpacity(_shadowOpacity.value),
+                                  .withValues(alpha: _shadowOpacity.value),
                               blurRadius: 8.r,
                               spreadRadius: 2.r,
                             ),
@@ -301,7 +260,7 @@ class _PlayerSectionState extends State<PlayerSection>
   }
 
   Widget buildPointButtons({
-    required FencingMatchViewModel viewModel, // Assuming your view model type
+    required FencingMatchViewModel viewModel,
     required int playerId,
   }) {
     return Padding(
@@ -311,7 +270,6 @@ class _PlayerSectionState extends State<PlayerSection>
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            // Plus Button
             ElevatedButton(
               onPressed: viewModel.currentStatus == MatchStatus.inMatch
                   ? () {
@@ -333,12 +291,14 @@ class _PlayerSectionState extends State<PlayerSection>
                 ),
               ),
             ),
-            Text("Point",style:  TextStyle(
-              fontSize: FontSize.s20,
-              fontWeight: FontWeight.bold,
-              color: Colors.black,
-            ),),
-            // Minus Button
+            Text(
+              "Point",
+              style: TextStyle(
+                fontSize: FontSize.s20,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
+              ),
+            ),
             ElevatedButton(
               onPressed: viewModel.currentStatus == MatchStatus.inMatch
                   ? () {

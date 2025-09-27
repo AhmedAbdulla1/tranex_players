@@ -1,4 +1,5 @@
-import 'package:firesport_users/domain/models/models.dart';
+import 'package:tranex_users/data/network/requests.dart';
+import 'package:tranex_users/domain/models/models.dart';
 
 class MatchesEntity {
   final List<MatchEntity> matches;
@@ -46,7 +47,7 @@ class MatchEntity {
 }
 
 class MatchDetailsEntity {
-  List<MatchDataEntity> matchData;
+  List<PlayerMovementData> matchData;
   List<PointDataEntity> pointData;
 
   MatchDetailsEntity({
@@ -57,7 +58,7 @@ class MatchDetailsEntity {
   factory MatchDetailsEntity.fromJson(Map<String, dynamic> json) {
     return MatchDetailsEntity(
       matchData: (json['match_data'] as List<dynamic>)
-          .map((data) => MatchDataEntity.fromJson(data))
+          .map((data) => PlayerMovementData.fromJson(data))
           .toList(),
       pointData: (json['point_data'] as List<dynamic>)
           .map((data) => PointDataEntity.fromJson(data))
@@ -94,19 +95,3 @@ class MatchDataEntity {
   }
 }
 
-class PointDataEntity {
-  final int timeInMs;
-  final double speed;
-
-  PointDataEntity({
-    required this.speed,
-    required this.timeInMs,
-  });
-
-  factory PointDataEntity.fromJson(Map<String, dynamic> json) {
-    return PointDataEntity(
-      speed: (json['S'] as num).toDouble(),
-      timeInMs: json['T'] as int,
-    );
-  }
-}

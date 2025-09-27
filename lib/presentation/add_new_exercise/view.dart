@@ -1,13 +1,15 @@
 import 'dart:io';
 
-import 'package:firesport_users/domain/models/models.dart';
-import 'package:firesport_users/presentation/add_new_exercise/view_model.dart';
-import 'package:firesport_users/presentation/common/reusable/custom_button.dart';
-import 'package:firesport_users/presentation/common/reusable/custom_text_form_field.dart';
-import 'package:firesport_users/presentation/common/state_render/state_renderer_imp.dart';
-import 'package:firesport_users/presentation/resources/assets_manager.dart';
-import 'package:firesport_users/presentation/resources/color_manager.dart';
-import 'package:firesport_users/presentation/resources/values_manager.dart';
+import 'package:tranex_users/app/constant.dart';
+import 'package:tranex_users/domain/models/models.dart';
+import 'package:tranex_users/presentation/add_new_exercise/view_model.dart';
+import 'package:tranex_users/presentation/common/reusable/custom_button.dart';
+import 'package:tranex_users/presentation/common/reusable/custom_text_form_field.dart';
+import 'package:tranex_users/presentation/common/state_render/state_renderer_imp.dart';
+import 'package:tranex_users/presentation/resources/assets_manager.dart';
+import 'package:tranex_users/presentation/resources/color_manager.dart';
+import 'package:tranex_users/presentation/resources/font_manager.dart';
+import 'package:tranex_users/presentation/resources/values_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';

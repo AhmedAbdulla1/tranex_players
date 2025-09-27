@@ -1,8 +1,8 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:firesport_users/app/constant.dart';
-import 'package:firesport_users/app/extensions.dart';
-import 'package:firesport_users/data/response/responses.dart';
-import 'package:firesport_users/domain/models/models.dart';
+import 'package:tranex_users/app/constant.dart';
+import 'package:tranex_users/app/extensions.dart';
+import 'package:tranex_users/data/response/responses.dart';
+import 'package:tranex_users/domain/models/models.dart';
 
 extension UserDataResponseMapper on UserDataResponse? {
   UserData toDomain() {
@@ -60,12 +60,7 @@ extension TeamsMapper on List<Map<String, dynamic>> {
   List<TraineeData> toDomain({bool withTrainees = true}) {
     List<TraineeData> trainees = [];
     for (Map<String, dynamic> trainee in this) {
-      TraineeData traineeData = TraineeData(
-        traineeName: trainee['name'],
-        traineeId: trainee['player_id'],
-        photo: trainee['profile_picture'] ?? "",
-        isFencer: trainee['is_fencer'] ?? false,
-      );
+      TraineeData traineeData = trainee.traineeDataToDomain();
       trainees.add(traineeData);
     }
     return trainees;
@@ -199,10 +194,14 @@ extension TrainingDataExtension on Map<String, dynamic> {
 
   TraineeData traineeDataToDomain() {
     return TraineeData(
-      traineeName: this['name'],
-      photo: this['profile_picture'] ?? '',
-      traineeId: this['player_id'],
-      isFencer: this['is_fencer'] ?? false,
-    );
+        traineeName: this['full_name'],
+        photo: this['profile_image'] ?? '',
+        traineeId: this['athlete_id'],
+        isFencer: this['is_fencer'] ?? false,
+        isActive: this['is_active'] ?? false,
+        country: this['country'] ?? '',
+        weaponType: this['weapon_type'] ?? '',
+        age: this['age'],
+        exercise: {});
   }
 }

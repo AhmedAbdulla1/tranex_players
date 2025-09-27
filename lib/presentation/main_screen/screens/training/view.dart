@@ -1,23 +1,17 @@
 // ignore_for_file: use_build_context_synchronously
 
-import 'dart:async';
-import 'package:firesport_users/domain/models/models.dart';
-import 'package:firesport_users/presentation/common/state_render/state_renderer_imp.dart';
-import 'package:firesport_users/presentation/bluetooth/BluetoothDeviceListEntry.dart';
-import 'package:firesport_users/presentation/main_screen/screens/training/widgets/weight_section.dart';
-import 'package:firesport_users/presentation/main_screen/screens/training/widgets/weight_selector.dart';
-import 'package:firesport_users/presentation/resources/assets_manager.dart';
-import 'package:firesport_users/presentation/resources/color_manager.dart';
-import 'package:firesport_users/presentation/resources/routes_manager.dart';
-import 'package:firesport_users/presentation/resources/string_manager.dart';
-import 'package:firesport_users/presentation/resources/values_manager.dart';
-import 'package:flutter/foundation.dart';
+import 'package:tranex_users/domain/models/models.dart';
+import 'package:tranex_users/presentation/common/state_render/state_renderer_imp.dart';
+import 'package:tranex_users/presentation/exercises/view.dart';
+import 'package:tranex_users/presentation/main_screen/screens/training/view_model.dart';
+import 'package:tranex_users/presentation/main_screen/screens/training/widgets/weight_section.dart';
+import 'package:tranex_users/presentation/resources/assets_manager.dart';
+import 'package:tranex_users/presentation/resources/color_manager.dart';
+import 'package:tranex_users/presentation/resources/routes_manager.dart';
+import 'package:tranex_users/presentation/resources/string_manager.dart';
+import 'package:tranex_users/presentation/resources/values_manager.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_blue_plus/flutter_blue_plus.dart';
-import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:firesport_users/presentation/main_screen/screens/training/view_model.dart';
-import '../../../resources/font_manager.dart';
 
 class TrainingView extends StatefulWidget {
   const TrainingView({super.key});
@@ -51,9 +45,10 @@ class _TrainingViewState extends State<TrainingView> {
       stream: _viewModel.outputState,
       builder: (context, snapshot) {
         return SingleChildScrollView(
-          child: Center( // توسيط المحتوى أفقيًا
+          child: Center(
+            // توسيط المحتوى أفقيًا
             child: ConstrainedBox(
-              constraints: BoxConstraints(maxWidth: 500), // أقصى عرض 500
+              constraints: const BoxConstraints(maxWidth: 800), // أقصى عرض 500
               child: Padding(
                 padding: EdgeInsets.all(AppPadding.p16.w),
                 child: Column(
@@ -105,14 +100,17 @@ class _TrainingViewState extends State<TrainingView> {
       ),
     );
   }
+
   Widget _buildExerciseImage(BuildContext context) {
     // تحديد إذا كان الجهاز في وضع Portrait أو Landscape
-    final bool isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
+    final bool isLandscape =
+        MediaQuery.of(context).orientation == Orientation.landscape;
 
     // حساب أبعاد الصورة بناءً على الـ Orientation
     final double imageHeight = isLandscape
         ? MediaQuery.of(context).size.width * 0.2 // ربع العرض في وضع Landscape
-        : MediaQuery.of(context).size.height * 0.25; // ربع الارتفاع في وضع Portrait
+        : MediaQuery.of(context).size.height *
+            0.25; // ربع الارتفاع في وضع Portrait
 
     return StreamBuilder<String>(
       stream: _viewModel.outImage,
@@ -124,38 +122,39 @@ class _TrainingViewState extends State<TrainingView> {
 
         return isImageUrlValid
             ? Image.network(
-          imageUrl,
-          height: imageHeight,
-          width: double.infinity,
-          fit: BoxFit.fitWidth,
-          loadingBuilder: (context, child, loadingProgress) {
-            if (loadingProgress == null) return child;
+                imageUrl,
+                height: imageHeight,
+                width: double.infinity,
+                fit: BoxFit.fitWidth,
+                loadingBuilder: (context, child, loadingProgress) {
+                  if (loadingProgress == null) return child;
 
-            return Center(
-              child: CircularProgressIndicator(
-                value: loadingProgress.expectedTotalBytes != null
-                    ? loadingProgress.cumulativeBytesLoaded /
-                    loadingProgress.expectedTotalBytes!
-                    : null,
-              ),
-            );
-          },
-          errorBuilder: (context, error, stackTrace) => Image.asset(
-            ImageAssets.trainingImage,
-            fit: BoxFit.fitWidth,
-            height: imageHeight,
-            width: double.infinity,
-          ),
-        )
+                  return Center(
+                    child: CircularProgressIndicator(
+                      value: loadingProgress.expectedTotalBytes != null
+                          ? loadingProgress.cumulativeBytesLoaded /
+                              loadingProgress.expectedTotalBytes!
+                          : null,
+                    ),
+                  );
+                },
+                errorBuilder: (context, error, stackTrace) => Image.asset(
+                  ImageAssets.trainingImage,
+                  fit: BoxFit.fitWidth,
+                  height: imageHeight,
+                  width: double.infinity,
+                ),
+              )
             : Image.asset(
-          ImageAssets.trainingImage,
-          fit: BoxFit.fitWidth,
-          height: imageHeight,
-          width: double.infinity,
-        );
+                ImageAssets.trainingImage,
+                fit: BoxFit.fitWidth,
+                height: imageHeight,
+                width: double.infinity,
+              );
       },
     );
   }
+
   Widget _buildExerciseSelection(BuildContext context) {
     return StreamBuilder<String>(
       stream: _viewModel.outExercise,
@@ -166,7 +165,7 @@ class _TrainingViewState extends State<TrainingView> {
           onTap: () async {
             final value = await Navigator.pushNamed(
               context,
-              Routes.exercisesScreen,
+              ExercisesView.routeName,
             );
             if (value is ExerciseData) {
               _viewModel.setExercise(value.exerciseName);
@@ -181,10 +180,10 @@ class _TrainingViewState extends State<TrainingView> {
   }
 
   Widget _buildSelectionTile(
-      BuildContext context, {
-        required String title,
-        required VoidCallback onTap,
-      }) {
+    BuildContext context, {
+    required String title,
+    required VoidCallback onTap,
+  }) {
     return Container(
       decoration: BoxDecoration(
         border: Border.all(color: ColorManager.simiBlack, width: 1),
@@ -205,34 +204,36 @@ class _TrainingViewState extends State<TrainingView> {
 
   Widget _buildConnectButton() {
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: AppPadding.p16.w),
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
       child: StreamBuilder<bool>(
         stream: _viewModel.outTrainerDataIsRight,
         initialData: false,
         builder: (context, snapshot) {
-          print(snapshot.data);
           return SizedBox(
             width: double.infinity,
-            height: AppSize.s55.h,
+            height: 55.0,
             child: ElevatedButton(
               onPressed: snapshot.data ?? false
-                  ? () async {
-                _viewModel.setTraining();
-                _viewModel.showBluetoothDialog(context);
-              }
+                  ? () {
+                      _viewModel.setTraining();
+                      _viewModel.showScanner(context); // استدعاء showScanner
+                    }
                   : null,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  const Icon(Icons.bluetooth_audio_sharp),
+                  const Icon(
+                    Icons.connect_without_contact,
+                    color: Colors.white,
+                    size: 30,
+                  ),
                   Text(
-                    "Connect to Device",
+                    "Connect To Device",
                     style: TextStyle(
-                      color: snapshot.data ?? false
-                          ? ColorManager.white
-                          : ColorManager.black,
-                      fontSize: FontSize.s16,
-                      fontWeight: FontWeightManager.medium,
+                      color:
+                          snapshot.data ?? false ? Colors.white : Colors.black,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 ],

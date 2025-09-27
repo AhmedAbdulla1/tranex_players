@@ -1,7 +1,7 @@
 import 'dart:async';
 
-import 'package:firesport_users/presentation/resources/color_manager.dart';
-import 'package:firesport_users/presentation/resources/values_manager.dart';
+import 'package:tranex_users/presentation/resources/color_manager.dart';
+import 'package:tranex_users/presentation/resources/values_manager.dart';
 import 'package:flutter/material.dart';
 
 Widget customElevatedButton({
@@ -18,7 +18,11 @@ Widget customElevatedButton({
           onPressed: (snapshot.data ?? false) ? onPressed : null,
           child: Text(
             text,
-            style: TextStyle(color:snapshot.data??false ? ColorManager.white :ColorManager.black,fontSize: 16),
+            style: TextStyle(
+                color: snapshot.data ?? false
+                    ? ColorManager.white
+                    : ColorManager.black,
+                fontSize: 16),
           )),
     ),
   );
@@ -35,8 +39,7 @@ Widget customElevatedButtonWithoutStream({
         padding: const EdgeInsets.symmetric(horizontal: AppPadding.p50),
         child: ElevatedButton(
           onPressed: onPressed,
-          child:child,
-
+          child: child,
         ),
       ));
 }
@@ -45,12 +48,13 @@ Widget textButton({
   required context,
   required VoidCallback onPressed,
   required String text,
+  TextStyle? buttonStyle,
 }) {
   return TextButton(
     onPressed: onPressed,
     child: Text(
       text,
-      style: Theme.of(context).textTheme.bodyLarge,
+      style: buttonStyle ?? Theme.of(context).textTheme.bodyLarge,
       textAlign: TextAlign.end,
     ),
   );

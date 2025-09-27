@@ -1,8 +1,7 @@
-import 'package:firesport_users/app/constant.dart';
+import 'package:tranex_users/app/constant.dart';
+import 'package:tranex_users/presentation/common/state_render/state_render.dart';
+import 'package:tranex_users/presentation/resources/string_manager.dart';
 import 'package:flutter/material.dart';
-
-import 'package:firesport_users/presentation/common/state_render/state_render.dart';
-import 'package:firesport_users/presentation/resources/string_manager.dart';
 
 abstract class StateFlow {
   String getMessage();
@@ -68,8 +67,6 @@ class ErrorState extends StateFlow {
   @override
   Function? getOnCancelAction() {
     return null;
-
-
   }
 }
 
@@ -118,8 +115,6 @@ class SuccessState extends StateFlow {
   @override
   Function? getOnCancelAction() {
     return null;
-
-
   }
 }
 
@@ -128,7 +123,7 @@ class DeleteState extends StateFlow {
   final Function retryAction;
   final Function onCancel;
 
-  DeleteState({required this.retryAction,required this.onCancel});
+  DeleteState({required this.retryAction, required this.onCancel});
 
   @override
   String getMessage() => 'Are you sure you want to delete?';
@@ -175,8 +170,8 @@ extension StateFlowExtension on StateFlow {
           dismissDialog(context);
           if (getStateRenderType() == StateRenderType.popupLoadingState) {
             // popup show
-            showPopup(
-                context, getStateRenderType(), getMessage(), getRetryAction(),null);
+            showPopup(context, getStateRenderType(), getMessage(),
+                getRetryAction(), null);
             //return content screen
             return contentScreenWidget;
           } else {
@@ -191,8 +186,8 @@ extension StateFlowExtension on StateFlow {
         {
           dismissDialog(context);
           if (getStateRenderType() == StateRenderType.popupErrorState) {
-            showPopup(
-                context, getStateRenderType(), getMessage(), getRetryAction(),null);
+            showPopup(context, getStateRenderType(), getMessage(),
+                getRetryAction(), null);
             return contentScreenWidget;
           } else {
             return StateRenderer(
@@ -215,14 +210,14 @@ extension StateFlowExtension on StateFlow {
         {
           dismissDialog(context);
           showPopup(context, StateRenderType.popupSuccessState, getMessage(),
-              getRetryAction(),null);
+              getRetryAction(), null);
           return contentScreenWidget;
         }
       case DeleteState:
         {
           dismissDialog(context);
           showPopup(context, StateRenderType.deleteState, getMessage(),
-              getRetryAction(),getOnCancelAction());
+              getRetryAction(), getOnCancelAction());
           return contentScreenWidget;
         }
       default:
@@ -232,15 +227,15 @@ extension StateFlowExtension on StateFlow {
   }
 
   showPopup(BuildContext context, StateRenderType stateRenderType,
-      String message, Function retryAction,Function? cancelAction) {
+      String message, Function retryAction, Function? cancelAction) {
     WidgetsBinding.instance.addPostFrameCallback((_) => showDialog(
         context: context,
         builder: (BuildContext context) => StateRenderer(
-            stateRenderType: stateRenderType,
-            message: message,
-            retryAction: retryAction,
-            cancelAction: cancelAction,
-        )));
+              stateRenderType: stateRenderType,
+              message: message,
+              retryAction: retryAction,
+              cancelAction: cancelAction,
+            )));
   }
 
   // for check if there dialog message or not

@@ -12,5 +12,7 @@ class _ResultViewState extends State<ResultView> {
   Widget build(BuildContext context) {
     return  Center(child: Text('Result ',style: Theme.of(context).textTheme.labelLarge,));
   }
+
+
 }
 

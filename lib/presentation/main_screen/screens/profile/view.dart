@@ -1,21 +1,22 @@
 import 'dart:io';
 
-import 'package:firesport_users/app/app_prefs.dart';
-import 'package:firesport_users/app/constant.dart';
-import 'package:firesport_users/app/di.dart';
-import 'package:firesport_users/domain/models/models.dart';
-import 'package:firesport_users/presentation/common/state_render/state_renderer_imp.dart';
-import 'package:firesport_users/presentation/main_screen/screens/profile/view_model.dart';
-import 'package:firesport_users/presentation/resources/assets_manager.dart';
-import 'package:firesport_users/presentation/resources/color_manager.dart';
-import 'package:firesport_users/presentation/resources/routes_manager.dart';
-import 'package:firesport_users/presentation/resources/string_manager.dart';
-import 'package:firesport_users/presentation/resources/values_manager.dart';
+import 'package:tranex_users/app/app_prefs.dart';
+import 'package:tranex_users/app/constant.dart';
+import 'package:tranex_users/app/di.dart';
+import 'package:tranex_users/presentation/common/state_render/state_renderer_imp.dart';
+import 'package:tranex_users/presentation/fencing_match/fencing_match_view.dart';
+import 'package:tranex_users/presentation/main_screen/screens/profile/view_model.dart';
+import 'package:tranex_users/presentation/resources/assets_manager.dart';
+import 'package:tranex_users/presentation/resources/color_manager.dart';
+import 'package:tranex_users/presentation/resources/routes_manager.dart';
+import 'package:tranex_users/presentation/resources/string_manager.dart';
+import 'package:tranex_users/presentation/resources/values_manager.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class ProfileView extends StatefulWidget {
-  const ProfileView({Key? key}) : super(key: key);
+  const ProfileView({super.key});
 
   @override
   State<ProfileView> createState() => _ProfileViewState();
@@ -36,10 +37,10 @@ class _ProfileViewState extends State<ProfileView> {
     return StreamBuilder<StateFlow>(
       stream: _viewModel.outputState,
       builder: (context, snapshot) =>
-      snapshot.data?.getScreenWidget(
-        context,
-        _getContent(),
-      ) ??
+          snapshot.data?.getScreenWidget(
+            context,
+            _getContent(),
+          ) ??
           _getContent(),
     );
   }
@@ -57,10 +58,7 @@ class _ProfileViewState extends State<ProfileView> {
             children: [
               Text(
                 AppStrings.profile,
-                style: Theme
-                    .of(context)
-                    .textTheme
-                    .labelLarge,
+                style: Theme.of(context).textTheme.labelLarge,
               ),
               Expanded(
                 child: SingleChildScrollView(
@@ -77,17 +75,24 @@ class _ProfileViewState extends State<ProfileView> {
                           child: CircleAvatar(
                             minRadius: 55,
                             backgroundColor: ColorManager.primary,
-                            child: StreamBuilder<TraineeData>(
+                            child: StreamBuilder<User>(
                                 stream: _viewModel.outData,
                                 builder: (context, snapshot) {
                                   return CircleAvatar(
                                     radius: 52,
                                     backgroundImage: (snapshot.data != null &&
-                                        snapshot.data!.photo.isNotEmpty)
-                                        ? NetworkImage(snapshot.data!.photo)
+                                            snapshot.data!.userMetadata![
+                                                    "photo_url"] !=
+                                                null &&
+                                            snapshot.data!.userMetadata![
+                                                    "photo_url"] !=
+                                                "")
+                                        ? NetworkImage(snapshot.data!
+                                                .userMetadata!["photo_url"]
+                                            as String)
                                         : const AssetImage(
-                                      ImageAssets.personal,
-                                    ),
+                                            ImageAssets.personal,
+                                          ),
                                   );
                                 }),
                           ),
@@ -99,40 +104,61 @@ class _ProfileViewState extends State<ProfileView> {
                         child: Center(
                           child: Padding(
                             padding: EdgeInsets.all(AppPadding.p8.h),
-                            child: StreamBuilder<TraineeData>(
+                            child: StreamBuilder<User>(
                                 stream: _viewModel.outData,
                                 builder: (context, snapshot) {
                                   return Text(
                                     snapshot.data != null
-                                        ? snapshot.data!.traineeName as String? ??
-                                        ""
+                                        ? snapshot.data!.userMetadata![
+                                                'display_name'] as String? ??
+                                            ""
                                         : '',
                                     style:
-                                    Theme
-                                        .of(context)
-                                        .textTheme
-                                        .labelMedium,
+                                        Theme.of(context).textTheme.labelMedium,
                                   );
                                 }),
                           ),
                         ),
                       ),
-                      SizedBox(
-                        height: AppSize.s20.h,
+                      Visibility(
+                        visible: !(_appPreferences.getLoginMethod() ==
+                            LoginMethod.anonymous.name),
+                        child: Center(
+                          child: StreamBuilder<User>(
+                              stream: _viewModel.outData,
+                              builder: (context, snapshot) {
+                                return Text(
+                                  snapshot.data != null
+                                      ? snapshot.data!.email ?? ""
+                                      : '',
+                                  style: Theme.of(context).textTheme.labelSmall,
+                                );
+                              }),
+                        ),
                       ),
+                      20.verticalSpace,
                       Visibility(
                         visible: !(_appPreferences.getLoginMethod() ==
                             LoginMethod.anonymous.name),
                         child: customListTile(
                           'Profile Detail',
                           Icons.person,
-                              () {
+                          () {
                             Navigator.pushNamed(
                               context,
                               Routes.profileDetailsScreen,
                             ).then((value) => _viewModel.start());
                           },
                         ),
+                      ),
+                      20.verticalSpace,
+                      customListTile(
+                        'Go to Fencing',
+                        Icons.sports_kabaddi_rounded,
+                        () {
+                          Navigator.pushNamed(
+                              context, FencingMatchView.routeName);
+                        },
                       ),
                       SizedBox(
                         height: AppSize.s40.h,
@@ -147,7 +173,7 @@ class _ProfileViewState extends State<ProfileView> {
                       customListTile(
                         'privacy policy',
                         Icons.privacy_tip,
-                            () {
+                        () {
                           Navigator.pushNamed(context, Routes.privacyScreen);
                         },
                       ),
@@ -160,7 +186,7 @@ class _ProfileViewState extends State<ProfileView> {
                         child: customListTile(
                           "Delete Account",
                           Icons.delete,
-                              () {
+                          () {
                             _viewModel.inputState
                                 .add(DeleteState(retryAction: () {
                               _viewModel.deleteAccount().then((value) {
@@ -174,6 +200,20 @@ class _ProfileViewState extends State<ProfileView> {
                           },
                         ),
                       ),
+                      Visibility(
+                        visible: (_appPreferences.getLoginMethod() ==
+                            LoginMethod.anonymous.name),
+                        child: customListTile(
+                          "Create Account",
+                          Icons.create,
+                          () {
+                            _viewModel.deleteAccount().then((value) {
+                              Navigator.pushReplacementNamed(
+                                  context, Routes.registerScreen);
+                            });
+                          },
+                        ),
+                      ),
                       SizedBox(
                         height: AppSize.s20.h,
                       ),
@@ -183,7 +223,7 @@ class _ProfileViewState extends State<ProfileView> {
                         child: customListTile(
                           'Logout',
                           Icons.logout_outlined,
-                              () {
+                          () {
                             _viewModel.logout().then((value) {
                               Navigator.pushReplacementNamed(
                                   context, Routes.loginScreen);
@@ -209,6 +249,7 @@ class _ProfileViewState extends State<ProfileView> {
         borderRadius: BorderRadius.circular(10.r),
       ),
       child: ListTile(
+        splashColor: ColorManager.white,
         onTap: onTap,
         minLeadingWidth: 40,
         minVerticalPadding: 20,
@@ -225,10 +266,7 @@ class _ProfileViewState extends State<ProfileView> {
         ),
         title: Text(
           title,
-          style: Theme
-              .of(context)
-              .textTheme
-              .labelMedium,
+          style: Theme.of(context).textTheme.labelMedium,
         ),
       ),
     );

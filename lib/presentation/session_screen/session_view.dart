@@ -1,23 +1,24 @@
 import 'dart:async';
 import 'dart:developer';
 
-import 'package:firesport_users/presentation/analysis_screen/widgets/nfc_statuse_widget.dart';
-import 'package:firesport_users/presentation/common/reusable/custom_button.dart';
-import 'package:firesport_users/presentation/common/state_render/state_renderer_imp.dart';
-import 'package:firesport_users/presentation/session_screen/analysis_screen.dart';
-import 'package:firesport_users/presentation/session_screen/end_session_view.dart';
-import 'package:firesport_users/presentation/resources/assets_manager.dart';
-import 'package:firesport_users/presentation/resources/color_manager.dart';
-import 'package:firesport_users/presentation/resources/string_manager.dart';
-import 'package:firesport_users/presentation/resources/values_manager.dart';
-import 'package:firesport_users/presentation/session_screen/fencing_screen.dart';
-import 'package:firesport_users/presentation/session_screen/session_view_model.dart';
-import 'package:firesport_users/presentation/session_screen/widgets/custom_bar_chart.dart';
-import 'package:firesport_users/presentation/session_screen/widgets/speed_chart.dart';
-import 'package:firesport_users/presentation/session_screen/widgets/timer.dart';
+import 'package:tranex_users/presentation/common/reusable/custom_button.dart';
+import 'package:tranex_users/presentation/common/state_render/state_renderer_imp.dart';
+import 'package:tranex_users/presentation/fencing_match/widgets/nfc_status_widget.dart';
+import 'package:tranex_users/presentation/resources/assets_manager.dart';
+import 'package:tranex_users/presentation/resources/color_manager.dart';
+import 'package:tranex_users/presentation/resources/string_manager.dart';
+import 'package:tranex_users/presentation/resources/values_manager.dart';
+import 'package:tranex_users/presentation/session_screen/analysis_screen.dart';
+import 'package:tranex_users/presentation/session_screen/end_session_view.dart';
+import 'package:tranex_users/presentation/session_screen/fencing_screen.dart';
+import 'package:tranex_users/presentation/session_screen/session_view_model.dart';
+import 'package:tranex_users/presentation/session_screen/widgets/custom_bar_chart.dart';
+import 'package:tranex_users/presentation/session_screen/widgets/speed_chart.dart';
+import 'package:tranex_users/presentation/session_screen/widgets/timer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:lottie/lottie.dart';
 import 'package:stop_watch_timer/stop_watch_timer.dart';
 
 class TrainingViewBar extends StatefulWidget {
@@ -50,7 +51,7 @@ class _TrainingViewBarState extends State<TrainingViewBar> {
     _viewModel.isFencing = widget.fencing;
     _viewModel.start();
     stopWatchTimer.secondTime.listen((time) {
-     _viewModel.timeBySeconds=time;
+      _viewModel.timeBySeconds = time;
     });
     // _viewModel.checkTraineeExist('560E8400E29B41D4A716446655440000');
     _viewModel.connectToDevice(widget.device);
@@ -62,10 +63,10 @@ class _TrainingViewBarState extends State<TrainingViewBar> {
     stopWatchTimer.dispose();
     super.dispose();
   }
+
   Timer? _countdownTimer; // Store the timer instance
   bool _isCountingDown = false;
   void _startCountdown(int idleTime) {
-
     if (_countdownTimer != null) {
       _countdownTimer!.cancel();
     }
@@ -86,6 +87,7 @@ class _TrainingViewBarState extends State<TrainingViewBar> {
       }
     });
   }
+
   void cancelCountdown() {
     if (_countdownTimer != null) {
       _countdownTimer!.cancel();
@@ -104,9 +106,9 @@ class _TrainingViewBarState extends State<TrainingViewBar> {
         stream: _viewModel.outputState,
         builder: (context, snapshot) {
           return snapshot.data?.getScreenWidget(
-            context,
-            _buildContent(),
-          ) ??
+                context,
+                _buildContent(),
+              ) ??
               _buildContent();
         },
       ),
@@ -161,7 +163,6 @@ class _TrainingViewBarState extends State<TrainingViewBar> {
                 onSave: () {
                   _viewModel.save().then((value) {
                     if (value) {
-
                       _viewModel.delete();
                       _viewModel.sendReconfirm();
                       _viewModel.inputStatus.add(SessionStatus.waitingRFID);
@@ -169,11 +170,10 @@ class _TrainingViewBarState extends State<TrainingViewBar> {
                   });
                 },
                 onExit: () {
-                  _viewModel.save().then(
-                          (value) {
-                            log('value $value', name: 'onExit');
-                            value ? Navigator.pop(context) : null;
-                          });
+                  _viewModel.save().then((value) {
+                    log('value $value', name: 'onExit');
+                    value ? Navigator.pop(context) : null;
+                  });
                 },
               );
             case SessionStatus.analyzing:
@@ -268,7 +268,7 @@ class _TrainingViewBarState extends State<TrainingViewBar> {
               stopWatchTimer.onStopTimer();
               _viewModel.getPreviousAverage().then(
                     (_) => _viewModel.inputStatus.add(SessionStatus.finished),
-              );
+                  );
             } else {
               _viewModel.inputStatus.add(SessionStatus.analyzing);
               _viewModel.sendOnSave();
@@ -337,3 +337,21 @@ class _TrainingViewBarState extends State<TrainingViewBar> {
   }
 }
 
+class ScanCard extends StatelessWidget {
+  const ScanCard({super.key, required this.counter});
+
+  final SessionStatus counter;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Lottie.asset(
+        counter == SessionStatus.waitingRFID
+            ? JsonAssets.loadingCard
+            : counter == SessionStatus.errorRFID
+                ? JsonAssets.errorCard
+                : JsonAssets.errorCard,
+      ),
+    );
+  }
+}

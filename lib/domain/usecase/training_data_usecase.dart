@@ -1,13 +1,17 @@
-import 'package:firesport_users/app/di.dart';
-import 'package:firesport_users/data/network/requests.dart';
-import 'package:firesport_users/domain/models/models.dart';
+import 'package:tranex_users/app/di.dart';
+import 'package:tranex_users/data/network/requests.dart';
+import 'package:tranex_users/domain/models/models.dart';
 import 'package:dartz/dartz.dart';
-import 'package:firesport_users/data/network/failure.dart';
-import 'package:firesport_users/domain/repository/trainees_repo.dart';
+import 'package:tranex_users/data/network/failure.dart';
+import 'package:tranex_users/domain/repository/trainees_repo.dart';
 
 class TrainingUsecase {
   final TraineesRepository _repository = instance<TraineesRepository>();
 
+  Future<Either<Failure, TraineeData>> checkTraineeExistence(
+      String traineeId) async {
+    return _repository.checkTraineeExistence(traineeId);
+  }
 
   Future<Either<Failure, TrainingData>> getTrainingData(
       GetTrainingRequest getTrainingRequest) {
@@ -41,6 +45,13 @@ class TrainingUsecase {
       ),
     );
   }
+
+  Future<Either<Failure, void>> saveFencingTraining(
+      SaveTrainingFencingRequest trainingData) async {
+
+
+    return await _repository.saveFencingTraining(trainingData);
+  }
 }
 
 class AddTrainingDataInput {
@@ -56,21 +67,22 @@ class AddTrainingDataInput {
   double avgConSpeed;
   double avgEccSpeed;
 
-  AddTrainingDataInput({required this.traineeId,
-    required this.exerciseId,
-    required this.numberOfSets,
-    required this.eccForce,
-    required this.conForce,
-    required this.maxEccSpeed
-    , required this.maxConSpeed,
-    required this.avgConSpeed,
-    required this.avgEccSpeed,
-    required this.timeBySeconds,
-    required this.weight});
+  AddTrainingDataInput(
+      {required this.traineeId,
+      required this.exerciseId,
+      required this.numberOfSets,
+      required this.eccForce,
+      required this.conForce,
+      required this.maxEccSpeed,
+      required this.maxConSpeed,
+      required this.avgConSpeed,
+      required this.avgEccSpeed,
+      required this.timeBySeconds,
+      required this.weight});
 }
 
 class GetTrainingDataInput {
-  int traineeId;
+  String traineeId;
   int exerciseId;
 
   GetTrainingDataInput({required this.traineeId, required this.exerciseId});

@@ -1,9 +1,9 @@
-import 'package:firesport_users/app/di.dart';
+import 'package:tranex_users/app/di.dart';
 import 'package:dartz/dartz.dart';
-import 'package:firesport_users/data/network/failure.dart';
-import 'package:firesport_users/data/network/requests.dart';
-import 'package:firesport_users/domain/models/models.dart';
-import 'package:firesport_users/domain/repository/exercise_repo.dart';
+import 'package:tranex_users/data/network/failure.dart';
+import 'package:tranex_users/data/network/requests.dart';
+import 'package:tranex_users/domain/models/models.dart';
+import 'package:tranex_users/domain/repository/exercise_repo.dart';
 
 class ExerciseUsecase {
   final ExerciseRepository repository;

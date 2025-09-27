@@ -1,12 +1,12 @@
 import 'package:dartz/dartz.dart';
-import 'package:firesport_users/data/data_source/remote_data_source.dart';
-import 'package:firesport_users/data/mapper/mapper.dart';
-import 'package:firesport_users/data/network/error_handler.dart';
-import 'package:firesport_users/data/network/failure.dart';
-import 'package:firesport_users/data/network/network_info.dart';
-import 'package:firesport_users/data/network/requests.dart';
-import 'package:firesport_users/domain/models/models.dart';
-import 'package:firesport_users/domain/repository/exercise_repo.dart';
+import 'package:tranex_users/data/data_source/remote_data_source.dart';
+import 'package:tranex_users/data/mapper/mapper.dart';
+import 'package:tranex_users/data/network/error_handler.dart';
+import 'package:tranex_users/data/network/failure.dart';
+import 'package:tranex_users/data/network/network_info.dart';
+import 'package:tranex_users/data/network/requests.dart';
+import 'package:tranex_users/domain/models/models.dart';
+import 'package:tranex_users/domain/repository/exercise_repo.dart';
 
 class ExerciseRepoImpl implements ExerciseRepository {
   final NetworkInfo _networkInfo;
@@ -44,7 +44,7 @@ class ExerciseRepoImpl implements ExerciseRepository {
 
   @override
   Future<Either<Failure, List<CategoryData>>> getExercises() async {
-    if (await _networkInfo.isConnected) {
+    if ( _networkInfo.isConnected) {
       try {
         final List<Map<String, dynamic>> response = await _remoteDataSource.getExercises();
 

@@ -1,12 +1,14 @@
+import 'dart:developer';
 import 'dart:io';
 
-import 'package:firesport_users/app/app_prefs.dart';
-import 'package:firesport_users/app/di.dart';
-import 'package:firesport_users/presentation/common/reusable/custom_button.dart';
-import 'package:firesport_users/presentation/common/reusable/custom_text_form_field.dart';
-import 'package:firesport_users/presentation/common/state_render/state_renderer_imp.dart';
-import 'package:firesport_users/presentation/resources/font_manager.dart';
-import 'package:firesport_users/presentation/resources/style_manager.dart';
+import 'package:tranex_users/app/app_prefs.dart';
+import 'package:tranex_users/app/di.dart';
+import 'package:tranex_users/app/toast.dart';
+import 'package:tranex_users/presentation/common/reusable/custom_button.dart';
+import 'package:tranex_users/presentation/common/reusable/custom_text_form_field.dart';
+import 'package:tranex_users/presentation/common/state_render/state_renderer_imp.dart';
+import 'package:tranex_users/presentation/resources/font_manager.dart';
+import 'package:tranex_users/presentation/resources/style_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:image_picker/image_picker.dart';
@@ -41,6 +43,62 @@ class _ProfileDetailsViewState extends State<ProfileDetailsView> {
   void initState() {
     _bind();
     super.initState();
+  }
+
+  Future<void> showConnectDialog(BuildContext context) async {
+    final TextEditingController codeController = TextEditingController();
+
+    return showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Text(
+            "Connect to Head Coach",
+            style:
+                getBoldStyle(fontSize: FontSize.s20, color: ColorManager.black),
+          ),
+          content: TextField(
+            controller: codeController,
+            decoration: const InputDecoration(
+              labelText: "Enter Code",
+              border: OutlineInputBorder(),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(
+                "Cancel",
+                style: getRegularStyle(
+                    fontSize: FontSize.s16, color: ColorManager.simiBlue),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                final code = codeController.text.trim();
+                if (code.isEmpty) {
+                  ShowToast.showError("Please enter a code");
+                  return;
+                }
+
+                log("Connecting with code: $code");
+
+                Navigator.of(context).pop(code);
+                _viewModel.connectToHeadCoach(code);
+              },
+              child: Text(
+                "Connect",
+                style: getRegularStyle(
+                    fontSize: FontSize.s16, color: ColorManager.white),
+              ),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -167,6 +225,8 @@ class _ProfileDetailsViewState extends State<ProfileDetailsView> {
       builder: (context, snapshot) {
         if (snapshot.hasData) {
           _nameController.text = _viewModel.signupObject.name;
+          log("Email: ${_viewModel.signupObject.email}");
+          log("Name: ${_viewModel.signupObject.name}");
           _emailController.text = _viewModel.signupObject.email;
         }
         return Padding(
@@ -222,33 +282,56 @@ class _ProfileDetailsViewState extends State<ProfileDetailsView> {
                 _nameController,
               ),
               SizedBox(height: AppSize.s14.h),
-              // Row(
-              //   children: [
-              //     Text(
-              //       AppStrings.email,
-              //       style: Theme.of(context).textTheme.labelSmall,
-              //     ),
-              //     const SizedBox(
-              //       width: AppSize.s14,
-              //     ),
-              //     Expanded(
-              //       child: TextFormField(
-              //         enabled: false,
-              //         style: getLightStyle(
-              //           color: ColorManager.simiBlue,
-              //           fontSize: FontSize.s16,
-              //         ),
-              //         keyboardType: TextInputType.emailAddress,
-              //         controller: _emailController,
-              //       ),
-              //     ),
-              //   ],
-              // ),
-              SizedBox(height:200.h),
+              Row(
+                children: [
+                  Text(
+                    AppStrings.email,
+                    style: Theme.of(context).textTheme.labelSmall,
+                  ),
+                  const SizedBox(
+                    width: AppSize.s14,
+                  ),
+                  Expanded(
+                    child: TextFormField(
+                      enabled: false,
+                      style: getLightStyle(
+                        color: ColorManager.simiBlue,
+                        fontSize: FontSize.s18,
+                      ),
+                      keyboardType: TextInputType.emailAddress,
+                      controller: _emailController,
+                    ),
+                  ),
+                ],
+              ),
+              14.verticalSpace,
+              ElevatedButton.icon(
+                icon: const Icon(
+                  Icons.signal_cellular_alt_2_bar_rounded,
+                  color: Colors.white,
+                  size: 24,
+                ),
+                onPressed: () {
+                  showConnectDialog(context);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: ColorManager.simiBlue,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8.r),
+                  ),
+                ),
+                label: Text(
+                  "Connect to Head Coach",
+                  style: getMediumStyle(
+                      fontSize: FontSize.s16, color: Colors.white),
+                ),
+              ),
+              SizedBox(height: 200.h),
               customElevatedButtonWithoutStream(
                 onPressed: () {
                   _viewModel.updateProfile(context).then((value) {
-                    _viewModel.inputState.add(SuccessState("Update Successfully"));
+                    _viewModel.inputState
+                        .add(SuccessState("Update Successfully"));
                     Future.delayed(const Duration(seconds: 1), () {
                       _viewModel.inputState.add(ContentState());
                     });

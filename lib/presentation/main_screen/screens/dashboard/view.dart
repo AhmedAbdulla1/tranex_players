@@ -1,27 +1,28 @@
 import 'dart:math';
 
-import 'package:firesport_users/presentation/matches_screen/view.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:firesport_users/app/app_prefs.dart';
-import 'package:firesport_users/app/di.dart';
-import 'package:firesport_users/app/extensions.dart';
-import 'package:firesport_users/domain/models/models.dart';
-import 'package:firesport_users/presentation/common/state_render/state_renderer_imp.dart';
-import 'package:firesport_users/presentation/main_screen/screens/dashboard/view_model.dart';
-import 'package:firesport_users/presentation/resources/assets_manager.dart';
-import 'package:firesport_users/presentation/resources/color_manager.dart';
-import 'package:firesport_users/presentation/resources/font_manager.dart';
-import 'package:firesport_users/presentation/resources/routes_manager.dart';
-import 'package:firesport_users/presentation/resources/style_manager.dart';
-import 'package:firesport_users/presentation/resources/values_manager.dart';
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:tranex_users/app/di.dart';
+import 'package:tranex_users/app/extensions.dart';
+import 'package:tranex_users/domain/models/models.dart';
+import 'package:tranex_users/presentation/common/state_render/state_renderer_imp.dart';
+import 'package:tranex_users/presentation/exercises/view.dart';
+import 'package:tranex_users/presentation/main_screen/screens/dashboard/view_model.dart';
+import 'package:tranex_users/presentation/matches_screen/view.dart';
+import 'package:tranex_users/presentation/resources/assets_manager.dart';
+import 'package:tranex_users/presentation/resources/color_manager.dart';
+import 'package:tranex_users/presentation/resources/font_manager.dart';
+import 'package:tranex_users/presentation/resources/routes_manager.dart';
+import 'package:tranex_users/presentation/resources/style_manager.dart';
+import 'package:tranex_users/presentation/resources/values_manager.dart';
+import 'package:tranex_users/presentation/trainees/view.dart';
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:fl_chart/fl_chart.dart';
 import 'package:multiple_stream_builder/multiple_stream_builder.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class DashboardView extends StatefulWidget {
-  const DashboardView({Key? key}) : super(key: key);
+  const DashboardView({super.key});
 
   @override
   State<DashboardView> createState() => _DashboardViewState();
@@ -74,14 +75,18 @@ class _DashboardViewState extends State<DashboardView> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                StreamBuilder<TraineeData>(
+                StreamBuilder<User>(
                   stream: _viewModel.outputDashboard,
                   builder: (context, snapshot) {
                     if (snapshot.data != null) {
-                       return _getAppBar(
-                              snapshot.data!.traineeName,
-                              snapshot.data!.photo,
-                            );
+                      return snapshot.data!.email != null
+                          ? _getAppBar(
+                              snapshot.data!.userMetadata?['display_name']
+                                      as String? ??
+                                  "",
+                              snapshot.data!.userMetadata?['photo_url'] ?? "",
+                            )
+                          : const SizedBox();
                     } else {
                       return const CircularProgressIndicator();
                     }
@@ -110,7 +115,7 @@ class _DashboardViewState extends State<DashboardView> {
                           onTap: () async {
                             await Navigator.pushNamed(
                               context,
-                              Routes.exercisesScreen,
+                              ExercisesView.routeName,
                             ).then((value) {
                               if (value != null && value is ExerciseData) {
                                 _viewModel.setExercise(value);
@@ -133,40 +138,35 @@ class _DashboardViewState extends State<DashboardView> {
                 SizedBox(
                   height: AppSize.s14.h,
                 ),
-                StreamBuilder<TraineeData>(
-                    stream: _viewModel.outTrainee,
-                    builder: (context, snapshot) {
-                      return Visibility(
-                        visible: snapshot.data?.isFencer ?? false,
-                        child: Container(
-                          decoration: BoxDecoration(
-                              color: ColorManager.grey3,
-                              border: Border.all(
-                                  color: ColorManager.simiBlack, width: 1),
-                              borderRadius:
-                                  BorderRadius.circular(AppSize.s8.r)),
-                          child: ListTile(
-                            onTap: () async {
-                              await Navigator.pushNamed(
-                                context,
-                               MatchesView.routeName,
-                               arguments: snapshot.data,
-                              );
-                            },
-                            trailing: const Icon(
-                              Icons.keyboard_arrow_right_outlined,
-                            ),
-                            splashColor: Colors.transparent,
-                            title: Text(
-                              "Go To Matches",
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: Theme.of(context).textTheme.labelMedium,
-                            ),
-                          ),
-                        ),
-                      );
-                    }),
+                Visibility(
+                  visible:true,
+                  child: Container(
+                    decoration: BoxDecoration(
+                        color: ColorManager.grey3,
+                        border:
+                            Border.all(color: ColorManager.simiBlack, width: 1),
+                        borderRadius: BorderRadius.circular(AppSize.s8.r)),
+                    child: ListTile(
+                      onTap: () async {
+                        await Navigator.pushNamed(
+                          context,
+                          MatchesView.routeName,
+                          arguments: trainee,
+                        );
+                      },
+                      trailing: const Icon(
+                        Icons.keyboard_arrow_right_outlined,
+                      ),
+                      splashColor: Colors.transparent,
+                      title: Text(
+                        "Go To Matches",
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.labelMedium,
+                      ),
+                    ),
+                  ),
+                ),
                 SizedBox(
                   height: AppSize.s14.h,
                 ),
@@ -231,7 +231,7 @@ class _DashboardViewState extends State<DashboardView> {
                                       ),
                                     );
                                   })),
-                          SizedBox(
+                          const SizedBox(
                             width: AppSize.s10,
                           ),
                           SizedBox(
@@ -380,38 +380,44 @@ class _DashboardViewState extends State<DashboardView> {
   }
 
   Widget _getAppBar(String userName, String image) {
-    return Container(
-        padding: EdgeInsets.all(
-          AppPadding.p10.h,
-        ),
-        decoration: BoxDecoration(
-          color: ColorManager.grey3,
-          border: Border.all(color: ColorManager.simiBlue),
-          borderRadius: BorderRadius.circular(
-            AppSize.s12.r,
+    final formattedName = userName.isNotEmpty
+        ? userName[0].toUpperCase() + userName.substring(1)
+        : "Guest";
+
+    return Row(
+      children: [
+        CircleAvatar(
+          radius: 28.r,
+          backgroundColor: ColorManager.primary.withOpacity(0.2),
+          child: CircleAvatar(
+            radius: 25.r,
+            backgroundImage: image.isEmpty
+                ? const AssetImage(ImageAssets.personal)
+                : NetworkImage(image) as ImageProvider,
           ),
         ),
-        child:
-            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-          Text(
-            userName.substring(0, 1).toUpperCase() + userName.substring(1),
-            style: Theme.of(context).textTheme.labelLarge,
+        SizedBox(width: 12.w),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                formattedName,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+              ),
+              Text(
+                'Welcome back!',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Colors.grey[600],
+                    ),
+              ),
+            ],
           ),
-          CircleAvatar(
-            radius: AppSize.s32,
-            backgroundColor: ColorManager.primary,
-            child: CircleAvatar(
-              radius: AppSize.s30,
-              foregroundImage: image.isEmpty
-                  ? const AssetImage(
-                      ImageAssets.personal,
-                    )
-                  : NetworkImage(
-                      image,
-                    ) as ImageProvider,
-            ),
-          ),
-        ]));
+        ),
+      ],
+    );
   }
 }
 
@@ -534,7 +540,7 @@ class LineChartView extends StatelessWidget {
             FlSpot(3, data.item1[1]),
             FlSpot(6, data.item1[2]),
             FlSpot(9, data.item1[3]),
-            FlSpot(10, data.item1[4]),
+            // FlSpot(10, data.item1[4]),
           ],
           isCurved: true,
           gradient: LinearGradient(
@@ -560,7 +566,8 @@ class LineChartView extends StatelessWidget {
             FlSpot(3, data.item2[1]),
             FlSpot(6, data.item2[2]),
             FlSpot(9, data.item2[3]),
-            FlSpot(10, data.item2[4]),
+            // FlSpot(10, data.item2[4]
+            // ),
           ],
           isCurved: true,
           gradient: LinearGradient(

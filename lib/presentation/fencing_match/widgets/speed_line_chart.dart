@@ -1,14 +1,15 @@
 // speed_line_chart.dart
 import 'dart:developer';
 
-import 'package:firesport_users/domain/models/matches_entity.dart';
+import 'package:tranex_users/data/network/requests.dart';
+import 'package:tranex_users/domain/models/matches_entity.dart';
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:firesport_users/presentation/fencing_match/fencing_match_view_model.dart';
+import 'package:tranex_users/presentation/fencing_match/fencing_match_view_model.dart';
 
 class SpeedLineChart extends StatefulWidget {
-  final List<MatchDataEntity> matchData;
+  final List<PlayerMovementData> matchData;
   final List<PointDataEntity> pointRecords;
   final int playerId;
   final Function(NumericAxisController) onRenderCreated;
@@ -65,7 +66,7 @@ class _SpeedLineChartState extends State<SpeedLineChart> {
       final matchingData = widget.matchData.firstWhere(
         (data) => data.timeInMs == point.timeInMs,
         orElse: () =>
-            MatchDataEntity(timeInMs: point.timeInMs, speed: 0, direction: 0),
+            PlayerMovementData(timeInMs: point.timeInMs, speed: 0, direction: 0),
       );
       return ChartData(
           time: point.timeInMs / 1000.0,

@@ -1,7 +1,7 @@
 // custom_range_selector.dart
 import 'dart:async';
-import 'package:firesport_users/presentation/resources/font_manager.dart';
-import 'package:firesport_users/presentation/resources/values_manager.dart';
+import 'package:tranex_users/presentation/resources/font_manager.dart';
+import 'package:tranex_users/presentation/resources/values_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:syncfusion_flutter_sliders/sliders.dart';
@@ -11,7 +11,7 @@ class CustomRangeSelector extends StatefulWidget {
   final double max;
   final SfRangeValues initialValues;
   final StreamController<SfRangeValues> rangeStreamController;
-  final int interval;
+  final double interval;
 
   const CustomRangeSelector({
     super.key,
@@ -80,7 +80,7 @@ class _CustomRangeSelectorState extends State<CustomRangeSelector> {
           showLabels: true,
           showTicks: true,
           showDividers: true,
-          interval: widget.interval.toDouble(),
+          interval: widget.interval,
           stepSize: 1.0, // Snap to integer values
           child: Container(
             height:AppSize.s20,

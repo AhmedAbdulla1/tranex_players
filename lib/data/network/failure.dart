@@ -1,5 +1,6 @@
-class Failure{
-  int code;
-  String message;
-  Failure({required this.code,required this.message});
+class Failure {
+  final String message;
+  final int? code;
+
+  Failure({required this.message,  this.code});
 }

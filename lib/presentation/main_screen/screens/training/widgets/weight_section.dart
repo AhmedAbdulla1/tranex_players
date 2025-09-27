@@ -1,5 +1,5 @@
-import 'package:firesport_users/domain/models/models.dart';
-import 'package:firesport_users/presentation/main_screen/screens/training/widgets/weight_selector.dart';
+import 'package:tranex_users/domain/models/models.dart';
+import 'package:tranex_users/presentation/main_screen/screens/training/widgets/weight_selector.dart';
 import 'package:flutter/material.dart';
 
 class WeightSection extends StatefulWidget {

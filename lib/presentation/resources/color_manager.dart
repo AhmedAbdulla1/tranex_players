@@ -4,13 +4,14 @@ class ColorManager {
   static Color primary = Colors.deepOrangeAccent;
   static Color grey = const Color(0xffF8F8F8);
   static Color white = const Color(0xffFFFFFF);
-  static Color simiBlack= const Color(0xff101010);
+  static Color simiBlack = const Color(0xff101010);
   static Color simiBlue = const Color(0xff26225F);
   static Color darkGreen = const Color(0xff2AB381);
   static Color lightGreen = const Color(0xff2FCA91);
-  static Color textFormEnabledBorder =Colors.deepOrangeAccent;
+  static Color textFormEnabledBorder = Colors.deepOrangeAccent;
   static Color textFormErrorBorder = const Color(0xffDA1E28);
-  static Color textFormIcon =const Color(0xff79767C);
+  static Color textFormIcon = const Color(0xff79767C);
+
   // new colors
   static Color starActive = const Color(0xffF6D060);
   static Color starNoActive = const Color(0xffE2E5EA);
@@ -22,4 +23,6 @@ class ColorManager {
   static Color bottomNavBarSecondary = const Color(0xff2B2B2B);
 
   static Color black = const Color(0xff000000); // red color
+  static const green = Colors.green;
+  static const red = Colors.red;
 }

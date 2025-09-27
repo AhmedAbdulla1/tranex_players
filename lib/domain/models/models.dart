@@ -80,34 +80,49 @@ class TeamData {
 
 class TraineeData {
   String traineeName;
+  String? country;
+  String? weaponType;
+  int? age;
+  bool isActive;
   String photo;
-  int traineeId;
+  String traineeId;
   bool isFencer;
+  Map<String, dynamic>? exercise;
 
-  TraineeData({
-    required this.traineeName,
-    required this.traineeId,
-    required this.isFencer,
-    required this.photo,
-  });
+  TraineeData(
+      {required this.traineeName,
+      required this.traineeId,
+      this.country,
+        this.age,
+      required this.isActive,
+      this.weaponType,
+      required this.isFencer,
+      required this.photo,
+      this.exercise});
 
   factory TraineeData.fromJson(Map<String, dynamic> json) {
     return TraineeData(
-      traineeName: json['name'],
-      traineeId: json['player_id'],
+      traineeName: json['name']??'',
+      traineeId: json['athlete_id'],
       isFencer: json['is_fencer'],
-      photo: json['profile_picture'],
+      photo: json['profile_picture']??'',
+      isActive: json['is_active']??false,
+      country: json['country']??'EG',
+      weaponType: json['weapon_type']??'',
     );
   }
 
-  toJson() {
-    return {
-      'name': traineeName,
-      'player_id': traineeId,
-      'is_fencer': isFencer,
-      'profile_picture': photo,
-    };
-  }
+  Map<String, dynamic> toJson() => {
+    'N': traineeName,
+    'ID': traineeId,
+    'F': isFencer,
+    'P': photo,
+    'A': isActive,
+    'C': country,
+    'W': weaponType,
+    'AG': age,
+    'E': exercise,
+  };
 }
 
 class TrainingData {

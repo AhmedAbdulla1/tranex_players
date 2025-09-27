@@ -1,8 +1,8 @@
 // import 'dart:developer';
 //
-// import 'package:firesport_users/app/app_prefs.dart';
-// import 'package:firesport_users/app/di.dart';
-// import 'package:firesport_users/data/network/requests.dart';
+// import 'package:tranex_users/app/app_prefs.dart';
+// import 'package:tranex_users/app/di.dart';
+// import 'package:tranex_users/data/network/requests.dart';
 // import 'package:cloud_firestore/cloud_firestore.dart';
 // import 'package:flutter/material.dart';
 //

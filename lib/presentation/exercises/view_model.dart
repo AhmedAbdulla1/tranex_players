@@ -1,10 +1,10 @@
 import 'dart:async';
-import 'package:firesport_users/app/di.dart';
-import 'package:firesport_users/domain/models/models.dart';
-import 'package:firesport_users/domain/usecase/exercise_usecase.dart';
-import 'package:firesport_users/presentation/base/base_view_model.dart';
-import 'package:firesport_users/presentation/common/state_render/state_render.dart';
-import 'package:firesport_users/presentation/common/state_render/state_renderer_imp.dart';
+import 'package:tranex_users/app/di.dart';
+import 'package:tranex_users/domain/models/models.dart';
+import 'package:tranex_users/domain/usecase/exercise_usecase.dart';
+import 'package:tranex_users/presentation/base/base_view_model.dart';
+import 'package:tranex_users/presentation/common/state_render/state_render.dart';
+import 'package:tranex_users/presentation/common/state_render/state_renderer_imp.dart';
 import 'package:rxdart/rxdart.dart';
 
 class ExercisesViewModel extends ExercisesViewModelOutput {

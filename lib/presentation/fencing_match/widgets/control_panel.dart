@@ -1,7 +1,7 @@
-import 'package:firesport_users/presentation/fencing_match/fencing_match_view_model.dart';
-import 'package:firesport_users/presentation/resources/color_manager.dart';
-import 'package:firesport_users/presentation/resources/font_manager.dart';
-import 'package:firesport_users/presentation/resources/values_manager.dart';
+import 'package:tranex_users/presentation/fencing_match/fencing_match_view_model.dart';
+import 'package:tranex_users/presentation/resources/color_manager.dart';
+import 'package:tranex_users/presentation/resources/font_manager.dart';
+import 'package:tranex_users/presentation/resources/values_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:stop_watch_timer/stop_watch_timer.dart';
@@ -15,6 +15,7 @@ class MatchControlPanel extends StatelessWidget {
   final StopWatchTimer stopWatchTimer;
   final StopWatchTimer actualPlayTimer;
   final MatchStatus matchStatus;
+  final FencingMatchViewModel viewModel;
 
   const MatchControlPanel({
     super.key,
@@ -26,6 +27,7 @@ class MatchControlPanel extends StatelessWidget {
     required this.stopWatchTimer,
     required this.actualPlayTimer,
     required this.matchStatus,
+    required this.viewModel,
   });
 
   @override
@@ -33,9 +35,9 @@ class MatchControlPanel extends StatelessWidget {
     final bool isControlEnabled =
         matchStatus == MatchStatus.paused || matchStatus == MatchStatus.inMatch;
 
+    print("MatchControlPanel build: status=$matchStatus");
     return Column(
       children: [
-        // العنوان وزرار الرجوع
         Container(
           padding: EdgeInsets.symmetric(
             horizontal: 8.w,
@@ -61,16 +63,16 @@ class MatchControlPanel extends StatelessWidget {
               Text(
                 'Fencing Match',
                 style: TextStyle(
-                  fontSize: FontSize.s20, // حجم متجاوب
+                  fontSize: FontSize.s20,
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
                 ),
               ),
+              SizedBox(width: AppSize.s20.w),
             ],
           ),
         ),
-        // المؤقت ووقت اللعب الفعلي
-        SizedBox(height: 10.h), // تباعد رأسي متجاوب
+        SizedBox(height: 10.h),
         StreamBuilder<int>(
           stream: stopWatchTimer.rawTime,
           initialData: 0,
@@ -83,14 +85,14 @@ class MatchControlPanel extends StatelessWidget {
             return Text(
               displayTime,
               style: TextStyle(
-                fontSize: FontSize.s20, // حجم متجاوب
+                fontSize: FontSize.s20,
                 fontWeight: FontWeight.bold,
                 color: Colors.black,
               ),
             );
           },
         ),
-        SizedBox(height: 10.h), // تباعد رأسي متجاوب
+        SizedBox(height: 10.h),
         StreamBuilder<int>(
           stream: actualPlayTimer.rawTime,
           initialData: 0,
@@ -103,21 +105,55 @@ class MatchControlPanel extends StatelessWidget {
             return Text(
               'Actual Play Time: $displayTime',
               style: TextStyle(
-                fontSize: FontSize.s16, // حجم متجاوب
+                fontSize: FontSize.s16,
                 color: Colors.black,
               ),
             );
           },
         ),
-        const Spacer(
-          flex: 2,
-        ),
-
-         Visibility(
+        SizedBox(height: 10.h),
+        if (matchStatus == MatchStatus.waitingBluetoothPlayer1 ||
+            matchStatus == MatchStatus.waitingBluetoothPlayer2)
+          Column(
+            children: [
+              Text(
+                matchStatus == MatchStatus.waitingBluetoothPlayer1
+                    ? 'Please select device for Player 1'
+                    : 'Please select device for Player 2',
+                style: TextStyle(
+                  fontSize: FontSize.s16,
+                  color: Colors.black,
+                ),
+              ),
+              SizedBox(height: 10.h),
+              Padding(
+                padding: EdgeInsets.only(left: 12.w, right: 12.w),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      print("Scan for Devices button pressed");
+                      viewModel.chooseDevice(context);
+                    },
+                    child: Text(
+                      'Scan for Devices',
+                      style: TextStyle(
+                        fontSize: FontSize.s20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        const Spacer(flex: 2),
+        Visibility(
           visible: matchStatus == MatchStatus.paused ||
               matchStatus == MatchStatus.waitingNFC2,
           child: Padding(
-            padding: const EdgeInsets.only(left: 12, right: 12),
+            padding: EdgeInsets.only(left: 12.w, right: 12.w),
             child: SizedBox(
               width: double.infinity,
               child: ElevatedButton(
@@ -126,7 +162,7 @@ class MatchControlPanel extends StatelessWidget {
                   'Start',
                   style: TextStyle(
                     fontSize: FontSize.s20,
-                    fontWeight: FontWeight.bold,// حجم متجاوب
+                    fontWeight: FontWeight.bold,
                     color: Colors.white,
                   ),
                 ),
@@ -137,7 +173,7 @@ class MatchControlPanel extends StatelessWidget {
         Visibility(
           visible: matchStatus == MatchStatus.inMatch,
           child: Padding(
-            padding: const EdgeInsets.only(left: 12, right: 12),
+            padding: EdgeInsets.only(left: 12.w, right: 12.w),
             child: SizedBox(
               width: double.infinity,
               child: ElevatedButton(
@@ -146,7 +182,7 @@ class MatchControlPanel extends StatelessWidget {
                   'Stop',
                   style: TextStyle(
                     fontSize: FontSize.s20,
-                    fontWeight: FontWeight.bold,// حجم متجاوب
+                    fontWeight: FontWeight.bold,
                     color: Colors.white,
                   ),
                 ),
@@ -157,7 +193,7 @@ class MatchControlPanel extends StatelessWidget {
         Visibility(
           visible: matchStatus == MatchStatus.inMatch,
           child: Padding(
-            padding: const EdgeInsets.only(left: 12, right: 12),
+            padding: EdgeInsets.only(left: 12.w, right: 12.w),
             child: SizedBox(
               width: double.infinity,
               child: ElevatedButton(
@@ -166,7 +202,7 @@ class MatchControlPanel extends StatelessWidget {
                   'Double',
                   style: TextStyle(
                     fontSize: FontSize.s20,
-                    fontWeight: FontWeight.bold,// حجم متجاوب
+                    fontWeight: FontWeight.bold,
                     color: Colors.white,
                   ),
                 ),
@@ -175,7 +211,7 @@ class MatchControlPanel extends StatelessWidget {
           ),
         ),
         Padding(
-          padding: const EdgeInsets.only(left: 12, right: 12),
+          padding: EdgeInsets.only(left: 12.w, right: 12.w),
           child: SizedBox(
             width: double.infinity,
             child: ElevatedButton(
@@ -184,14 +220,14 @@ class MatchControlPanel extends StatelessWidget {
                 'End',
                 style: TextStyle(
                   fontSize: FontSize.s20,
-                  fontWeight: FontWeight.bold,// حجم متجاوب
+                  fontWeight: FontWeight.bold,
                   color: Colors.white,
                 ),
               ),
             ),
           ),
         ),
-        const Spacer()
+        const Spacer(),
       ],
     );
   }

@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:firesport_users/presentation/bluetooth/BluetoothDeviceListEntry.dart';
+import 'package:tranex_users/presentation/bluetooth/BluetoothDeviceListEntry.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart' as flutterBlue;
@@ -10,18 +10,16 @@ class BluetoothModel {
   final FlutterReactiveBle _ble = FlutterReactiveBle();
   late StreamSubscription<DiscoveredDevice> _scanSubscription;
 
-  // Controller لإرسال الأجهزة المكتشفة
   final _deviceController = BehaviorSubject<DiscoveredDevice?>.seeded(null);
   List<DiscoveredDevice> devices = [];
   bool isScanning = false;
 
-  // Output Stream للأجهزة
   Stream<DiscoveredDevice?> get outDevice => _deviceController.stream;
 
-  // طلب إذونات الـ Bluetooth
   Future<void> requestBluetoothPermissions() async {
     bool isBluetoothOn =
-        await flutterBlue.FlutterBluePlus.adapterState.first == flutterBlue.BluetoothAdapterState.on;
+        await flutterBlue.FlutterBluePlus.adapterState.first ==
+            flutterBlue.BluetoothAdapterState.on;
     if (!isBluetoothOn) {
       await flutterBlue.FlutterBluePlus.turnOn();
     }
@@ -40,30 +38,30 @@ class BluetoothModel {
     }
   }
 
-  // بدء السكان
   void scanForDevices() {
     devices.clear();
     isScanning = true;
+    _deviceController.add(null); // Reset stream
 
     _scanSubscription = _ble.scanForDevices(withServices: []).listen((device) {
       if (!devices.any((d) => d.id == device.id)) {
-        isScanning = false;
-        print("Discovered device: ${device.name}");
         devices.add(device);
         _deviceController.add(device);
+        print("Discovered device: ${device.name} (${device.id})");
       }
     }, onError: (e) {
       print("Scan failed: $e");
       isScanning = false;
       _deviceController.addError(e);
+    }, onDone: () {
+      isScanning = false;
+      _deviceController.add(null);
     });
   }
 
-  // إيقاف السكان
   void stopScan() {
     _scanSubscription.cancel();
     isScanning = false;
-    // devices.clear();
     _deviceController.add(null);
   }
 
@@ -71,10 +69,9 @@ class BluetoothModel {
     required BuildContext context,
     required Function(DiscoveredDevice) onDeviceSelected,
   }) async {
+    await requestBluetoothPermissions();
     scanForDevices();
-
     showDialog(
-      useSafeArea: true,
       context: context,
       builder: (_) {
         return AlertDialog(
@@ -86,10 +83,10 @@ class BluetoothModel {
           content: StreamBuilder<DiscoveredDevice?>(
             stream: outDevice,
             builder: (context, snapshot) {
-              print("Discovered device: ${snapshot.data?.name}");
-              print(isScanning);
+              print("StreamBuilder update: hasData=${snapshot.hasData}, "
+                  "isScanning=$isScanning, devices=${devices.length}");
 
-              if (isScanning) {
+              if (isScanning && devices.isEmpty) {
                 return const SizedBox(
                   height: 300,
                   child: Center(
@@ -99,12 +96,12 @@ class BluetoothModel {
               }
 
               if (snapshot.hasError) {
-                return SizedBox(
+                return const SizedBox(
                   height: 300,
                   child: Center(
                     child: Text(
-                      "Scan failed: ${snapshot.error.toString()}",
-                      style: const TextStyle(color: Colors.red),
+                      "Scan failed. Maybe Bluetooth is off.",
+                      style: TextStyle(color: Colors.red),
                     ),
                   ),
                 );
@@ -115,7 +112,7 @@ class BluetoothModel {
                   height: 300,
                   child: Center(
                     child: Text(
-                      "NO SCANNED RESULTS",
+                      "No devices found.",
                       style: TextStyle(color: Colors.red),
                     ),
                   ),
@@ -126,7 +123,7 @@ class BluetoothModel {
                 height: 300,
                 width: 400,
                 child: ListView.builder(
-                  padding: const EdgeInsets.all(16), // AppPadding.p16
+                  padding: const EdgeInsets.all(16),
                   itemCount: devices.length,
                   itemBuilder: (context, i) {
                     return BluetoothDeviceListEntry(
@@ -134,23 +131,21 @@ class BluetoothModel {
                       onTap: () {
                         stopScan();
                         Navigator.pop(context);
-                        print(devices);
                         onDeviceSelected(devices[i]);
                       },
                     );
-
                   },
                 ),
               );
             },
           ),
           actionsAlignment: MainAxisAlignment.spaceBetween,
-          actionsPadding: const EdgeInsets.all(18), // AppPadding.p18
+          actionsPadding: const EdgeInsets.all(18),
           actions: <Widget>[
             TextButton(
               onPressed: () {
-                stopScan(); // وقف السكان القديم
-                scanForDevices(); // ابدأ سكان جديد
+                stopScan();
+                scanForDevices();
               },
               child: Text(
                 "Refresh",
@@ -159,8 +154,8 @@ class BluetoothModel {
             ),
             TextButton(
               onPressed: () {
-                stopScan(); // وقف السكان
-                Navigator.of(context).pop(); // إغلاق الـ Dialog
+                stopScan();
+                Navigator.of(context).pop();
               },
               child: Text(
                 'Close',
@@ -173,7 +168,6 @@ class BluetoothModel {
     );
   }
 
-  // تنظيف الموارد
   void dispose() {
     _scanSubscription.cancel();
     _deviceController.close();

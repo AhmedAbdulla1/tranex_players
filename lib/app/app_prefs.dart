@@ -1,5 +1,5 @@
-import 'package:firesport_users/app/constant.dart';
-import 'package:firesport_users/presentation/resources/language_manager.dart';
+import 'package:tranex_users/app/constant.dart';
+import 'package:tranex_users/presentation/resources/language_manager.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 const String prefsKeyLang = "PrefsKeyLang";
@@ -11,7 +11,7 @@ const String exerciseKey = "ExerciseKey";
 const String trainingKey = "TrainingKey";
 const String trainerKey = "TrainerKey";
 const String token = "token";
-const String userKey = "userKey";
+const String coachId = "coachId";
 const String firstOpen = 'firstOpen';
 const String ipKey = 'ipKey';
 const String exerciseImageKey = 'exerciseImage';
@@ -23,7 +23,7 @@ class AppPreferences {
   AppPreferences(this._sharedPreferences) {
     _sharedPreferences.setBool(cacheKey, true);
   }
-
+  get sharedPreferences => _sharedPreferences;
   Future<String> getAppLanguage() async {
     String? language = _sharedPreferences.getString(prefsKeyLang);
     // ignore: unnecessary_null_comparison
@@ -32,6 +32,14 @@ class AppPreferences {
     } else {
       return LanguageType.english.getValue();
     }
+  }
+
+  Future<void> setIsNotFirstOpen(bool t) async {
+    await _sharedPreferences.setBool(firstOpen, t);
+  }
+
+  bool isNotFirstOpen() {
+    return _sharedPreferences.getBool(firstOpen) ?? false;
   }
 
   Future setUpdateCache(bool updateCache) async {
@@ -106,16 +114,10 @@ class AppPreferences {
   }
 
   //set trainer data
-  Future<void> setUser(String user) async {
-    await _sharedPreferences.setString(trainerKey, user);
-  }
 
-  String getUser() {
-    return _sharedPreferences.getString(trainerKey) ?? "{}";
-  }
 
-  Future<void> removeUser() async {
-    await _sharedPreferences.remove(trainerKey);
+  List<String>? getTrainee() {
+    return _sharedPreferences.getStringList(trainerKey);
   }
 
   //login
@@ -137,39 +139,31 @@ class AppPreferences {
   }
 
   //token
-  Future<void> setToken(String t) async {
+  Future<void> setUid(String t) async {
     _sharedPreferences.setString(token, t);
   }
 
-  String getToken() {
+  String getUid() {
     return _sharedPreferences.getString(token) ?? '';
   }
-
   //token
-  Future<void> setUserId(int t) async {
-    _sharedPreferences.setInt(userKey, t);
+  Future<void> setCoachId(int t) async {
+    _sharedPreferences.setInt(coachId, t);
   }
 
-  int getUserId() {
-    return _sharedPreferences.getInt(userKey) ?? 0;
+  int getCoachId() {
+    return _sharedPreferences.getInt(coachId) ?? 0;
   }
 
   // logout
-  Future<void> logout()async {
-   await  removeUser();
-   await _sharedPreferences.remove(token);
-    await _sharedPreferences.remove(trainingKey);
-    await _sharedPreferences.remove(userKey);
-    await _sharedPreferences.remove(pressKeyLoginScreen);
+  Future<void> logout() {
+    _sharedPreferences.remove(token);
+    _sharedPreferences.remove(trainingKey);
+    _sharedPreferences.remove(coachId);
+    return _sharedPreferences.remove(pressKeyLoginScreen);
   }
 
-  Future<void> setIsNotFirstOpen(bool t) async {
-    await _sharedPreferences.setBool(firstOpen, t);
-  }
 
-  bool isNotFirstOpen() {
-    return _sharedPreferences.getBool(firstOpen) ?? false;
-  }
 
   Future<void> setIp(String ip) async {
     await _sharedPreferences.setString(ipKey, ip);

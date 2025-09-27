@@ -1,23 +1,77 @@
-import 'package:firebase_core/firebase_core.dart';
-import 'package:firesport_users/app/app.dart';
-import 'package:firesport_users/app/di.dart';
-import 'package:firesport_users/data/network/network_info.dart';
-import 'package:firesport_users/firebase_options.dart';
-
+// import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:tranex_users/app/app.dart';
+import 'package:tranex_users/app/di.dart';
+import 'package:tranex_users/data/api_services/services_locator.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+// import 'package:instabug_flutter/instabug_flutter.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-void main() async {
+
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  setupServiceLocator();
+  // تحميل ملف .env أولاً
+  try {
+    await dotenv.load(fileName: ".env");
+  } catch (e) {
+    // التعامل مع فشل تحميل .env
+    print('Error loading .env file: $e');
+    return;
+  }
+
+  // تهيئة التبعيات
   await initAppModule();
-  await Supabase.initialize(
-    url: 'https://vglkhiirjgiyarjebqpl.supabase.co',
-    anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZnbGtoaWlyamdpeWFyamVicXBsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI2MDMyOTEsImV4cCI6MjA1ODE3OTI5MX0.hp7KtDL7nZ_g9F_tjfqBQw0FKwk-G-tLtCLRG1r8PqE',
-  );
-  await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
+
+  // تهيئة Supabase
+  try {
+    await Supabase.initialize(
+      url: dotenv.env['SUPABASE_URL'] ?? '',
+      anonKey: dotenv.env['SUPABASE_ANON_KEY'] ?? '',
     );
-  await instance<NetworkInfo>().ensureInitialized();
+  } catch (e) {
+    print('Error initializing Supabase: $e');
+  }
 
-  runApp(MyApp());
+  // // تهيئة Instabug
+  // try {
+  //   await Instabug.init(
+  //     token: dotenv.env['INSTABUG_TOKEN'] ?? '',
+  //     invocationEvents: [InvocationEvent.floatingButton],
+  //     debugLogsLevel: LogLevel.debug,
+  //   );
+  //   Instabug.setPrimaryColor(ColorManager.primary);
+  //   final AppPreferences prefs = instance<AppPreferences>();
+  //   if (!prefs.isNotFirstOpen()) {
+  //     Instabug.showWelcomeMessageWithMode(WelcomeMessageMode.live);
+  //     await prefs.setIsNotFirstOpen(true);
+  //   }
+  // } catch (e) {
+  //   print('Error initializing Instabug: $e');
+  // }
+  //
+  // // تهيئة NetworkInfo
+  // try {
+  //   await instance<NetworkInfo>().ensureInitialized();
+  // } catch (e) {
+  //   print('Error initializing NetworkInfo: $e');
+  // }
+
+  // تهيئة Sentry
+  await SentryFlutter.init(
+    (options) {
+      options.dsn = dotenv.env['SENTRY_DSN'] ?? '';
+      options.debug = false; // قم بتعطيله في الإنتاج إذا لزم الأمر
+      options.sendDefaultPii = true; // لتتبع معلومات المستخدم
+      options.tracesSampleRate = 0.002;
+      options.environment = 'production'; // أو 'development' حسب البيئة
+      options.enableAutoSessionTracking = true;
+      options.attachStacktrace = true;
+    },
+    appRunner: () => runApp(
+      SentryWidget(
+        child: MyApp(),
+      ),
+    ),
+  );
 }
-

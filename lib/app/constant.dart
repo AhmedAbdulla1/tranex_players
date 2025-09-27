@@ -1,7 +1,7 @@
 
-import 'package:firesport_users/app/app_prefs.dart';
-import 'package:firesport_users/app/di.dart';
-import 'package:firesport_users/presentation/resources/assets_manager.dart';
+import 'package:tranex_users/app/app_prefs.dart';
+import 'package:tranex_users/app/di.dart';
+import 'package:tranex_users/presentation/resources/assets_manager.dart';
 
 final AppPreferences _appPreferences = instance<AppPreferences>();
 
@@ -14,7 +14,7 @@ class Constant {
   static const String teams = 'teams';
   static const String devices = 'devices';
 
-  static String token = _appPreferences.getToken();
+  static String token = _appPreferences.getUid();
   static const int zero = 0;
   static const Duration timeout = Duration(
       milliseconds: 60000); //this time by ms

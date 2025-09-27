@@ -1,16 +1,18 @@
 import 'dart:async';
 import 'dart:math' as math;
-import 'package:firesport_users/domain/models/matches_entity.dart';
-import 'package:firesport_users/domain/models/models.dart';
-import 'package:firesport_users/presentation/fencing_match/widgets/custom_pie_chart.dart';
-import 'package:firesport_users/presentation/fencing_match/widgets/range_selector.dart';
-import 'package:firesport_users/presentation/fencing_match/widgets/speed_line_chart.dart';
+import 'package:tranex_users/data/network/requests.dart';
+import 'package:tranex_users/domain/models/matches_entity.dart';
+import 'package:tranex_users/domain/models/models.dart';
+import 'package:tranex_users/presentation/fencing_match/widgets/custom_pie_chart.dart';
+import 'package:tranex_users/presentation/fencing_match/widgets/range_selector.dart';
+import 'package:tranex_users/presentation/fencing_match/widgets/speed_line_chart.dart';
 import 'package:flutter/material.dart';
-import 'package:firesport_users/presentation/resources/font_manager.dart';
-import 'package:firesport_users/presentation/resources/values_manager.dart';
+import 'package:tranex_users/presentation/resources/font_manager.dart';
+import 'package:tranex_users/presentation/resources/values_manager.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:syncfusion_flutter_sliders/sliders.dart';
+import '../common/reusable/custom_button.dart';
 
 class FencingAnalysisView extends StatefulWidget {
   final MatchEntity matchEntity;
@@ -33,6 +35,7 @@ class _FencingAnalysisViewState extends State<FencingAnalysisView> {
   late double rangeEnd;
   late StreamController<SfRangeValues> _rangeStreamController;
   late NumericAxisController _xAxisController1;
+  late NumericAxisController _xAxisController2;
   late MatchDetailsEntity playerMatchData;
   late MatchDetailsEntity opponentMatchData;
   late String playerName;
@@ -55,13 +58,17 @@ class _FencingAnalysisViewState extends State<FencingAnalysisView> {
       opponentName = widget.matchEntity.opponent.traineeName;
     }
 
-    // Calculate the initial range based on player data only
+    // Calculate the initial range based on the full data
     final double maxTimePlayer = playerMatchData.matchData.isNotEmpty
         ? playerMatchData.matchData.last.timeInMs / 1000.0
         : 1.0;
+    final double maxTimeOpponent = opponentMatchData.matchData.isNotEmpty
+        ? opponentMatchData.matchData.last.timeInMs / 1000.0
+        : 1.0;
+    final double maxTime = math.max(maxTimePlayer, maxTimeOpponent);
 
     rangeStart = 0.0;
-    rangeEnd = maxTimePlayer;
+    rangeEnd = maxTime;
 
     // Initialize ZoomPanBehavior
     zoomPanBehavior = ZoomPanBehavior(
@@ -102,7 +109,8 @@ class _FencingAnalysisViewState extends State<FencingAnalysisView> {
 
   @override
   Widget build(BuildContext context) {
-    if (playerMatchData.matchData.isEmpty) {
+    if (playerMatchData.matchData.isEmpty &&
+        opponentMatchData.matchData.isEmpty) {
       return Scaffold(
         appBar: AppBar(
           title: const Text('Analysis'),
@@ -116,6 +124,10 @@ class _FencingAnalysisViewState extends State<FencingAnalysisView> {
     final double maxTimePlayer = playerMatchData.matchData.isNotEmpty
         ? playerMatchData.matchData.last.timeInMs / 1000.0
         : 1.0;
+    final double maxTimeOpponent = opponentMatchData.matchData.isNotEmpty
+        ? opponentMatchData.matchData.last.timeInMs / 1000.0
+        : 1.0;
+    final double maxTime = math.max(maxTimePlayer, maxTimeOpponent);
 
     return Scaffold(
       appBar: AppBar(
@@ -137,10 +149,10 @@ class _FencingAnalysisViewState extends State<FencingAnalysisView> {
                         SizedBox(height: AppSize.s20.h),
                         CustomRangeSelector(
                           min: 0.0,
-                          max: maxTimePlayer,
+                          max: maxTime,
                           initialValues: SfRangeValues(rangeStart, rangeEnd),
                           rangeStreamController: _rangeStreamController,
-                          interval: (maxTimePlayer / 20).toInt(),
+                          interval: 8,
                         ),
                         SizedBox(height: AppSize.s20.h),
                         StreamBuilder<SfRangeValues>(
@@ -151,13 +163,20 @@ class _FencingAnalysisViewState extends State<FencingAnalysisView> {
                                 SfRangeValues(rangeStart, rangeEnd);
                             final filteredPlayerMatchData = _filterMatchData(
                                 playerMatchData, range.start, range.end);
+                            final filteredOpponentMatchData = _filterMatchData(
+                                opponentMatchData, range.start, range.end);
 
                             return Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                _buildSpeedOverTimeSection(filteredPlayerMatchData),
-                                _buildDirectionBreakdownSection(filteredPlayerMatchData),
-                                _buildQuickStatsSection(filteredPlayerMatchData),
+                                _buildSpeedOverTimeSection(
+                                    filteredPlayerMatchData,
+                                    filteredOpponentMatchData),
+                                _buildDirectionBreakdownSection(
+                                    filteredPlayerMatchData,
+                                    filteredOpponentMatchData),
+                                _buildQuickStatsSection(filteredPlayerMatchData,
+                                    filteredOpponentMatchData),
                                 SizedBox(height: AppSize.s10),
                               ],
                             );
@@ -187,10 +206,16 @@ class _FencingAnalysisViewState extends State<FencingAnalysisView> {
       padding: EdgeInsets.symmetric(
           vertical: AppPadding.p10.h, horizontal: AppPadding.p16.w),
       color: Colors.grey[200],
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      width: double.infinity,
+      child: Wrap(
+        crossAxisAlignment: WrapCrossAlignment.center,
+        alignment: WrapAlignment.spaceAround,
+        spacing: 8,
+        runSpacing: 8,
+        // mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
               CircleAvatar(
                 radius: AppSize.s20.r,
@@ -200,11 +225,11 @@ class _FencingAnalysisViewState extends State<FencingAnalysisView> {
                     : null,
                 child: widget.traineeData.photo.isEmpty
                     ? Text(
-                  widget.traineeData.traineeName.isNotEmpty
-                      ? widget.traineeData.traineeName[0].toUpperCase()
-                      : 'P',
-                  style: const TextStyle(color: Colors.white),
-                )
+                        widget.traineeData.traineeName.isNotEmpty
+                            ? widget.traineeData.traineeName[0].toUpperCase()
+                            : 'P',
+                        style: const TextStyle(color: Colors.white),
+                      )
                     : null,
               ),
               SizedBox(width: AppSize.s8.w),
@@ -232,6 +257,7 @@ class _FencingAnalysisViewState extends State<FencingAnalysisView> {
             ),
           ],
           Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
               CircleAvatar(
                 radius: AppSize.s20.r,
@@ -241,12 +267,12 @@ class _FencingAnalysisViewState extends State<FencingAnalysisView> {
                     : null,
                 child: widget.matchEntity.opponent.photo.isEmpty
                     ? Text(
-                  widget.matchEntity.opponent.traineeName.isNotEmpty
-                      ? widget.matchEntity.opponent.traineeName[0]
-                      .toUpperCase()
-                      : 'O',
-                  style: const TextStyle(color: Colors.white),
-                )
+                        widget.matchEntity.opponent.traineeName.isNotEmpty
+                            ? widget.matchEntity.opponent.traineeName[0]
+                                .toUpperCase()
+                            : 'O',
+                        style: const TextStyle(color: Colors.white),
+                      )
                     : null,
               ),
               SizedBox(width: AppSize.s8.w),
@@ -272,7 +298,8 @@ class _FencingAnalysisViewState extends State<FencingAnalysisView> {
     );
   }
 
-  Widget _buildSpeedOverTimeSection(MatchDetailsEntity playerMatchData) {
+  Widget _buildSpeedOverTimeSection(MatchDetailsEntity playerMatchData,
+      MatchDetailsEntity opponentMatchData) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -289,16 +316,34 @@ class _FencingAnalysisViewState extends State<FencingAnalysisView> {
                 },
               ),
             ),
+            Expanded(
+              child: SpeedLineChart(
+                matchData: opponentMatchData.matchData,
+                pointRecords: opponentMatchData.pointData,
+                playerId: widget.matchEntity.opponentNum,
+                onRenderCreated: (controller) {
+                  _xAxisController2 = controller;
+                },
+              ),
+            ),
           ],
         ),
       ],
     );
   }
 
-  Widget _buildDirectionBreakdownSection(MatchDetailsEntity playerMatchData) {
-    final playerForward = playerMatchData.matchData.where((d) => d.direction == 1).length;
-    final playerBackward = playerMatchData.matchData.where((d) => d.direction == -1).length;
+  Widget _buildDirectionBreakdownSection(MatchDetailsEntity playerMatchData,
+      MatchDetailsEntity opponentMatchData) {
+    final playerForward =
+        playerMatchData.matchData.where((d) => d.direction == 1).length;
+    final playerBackward =
+        playerMatchData.matchData.where((d) => d.direction == -1).length;
     final playerTotal = playerMatchData.matchData.length;
+    final opponentForward =
+        opponentMatchData.matchData.where((d) => d.direction == 1).length;
+    final opponentBackward =
+        opponentMatchData.matchData.where((d) => d.direction == -1).length;
+    final opponentTotal = opponentMatchData.matchData.length;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -319,12 +364,24 @@ class _FencingAnalysisViewState extends State<FencingAnalysisView> {
             Expanded(
               child: playerTotal > 0
                   ? CustomPieChart(
-                forwardPercent: (playerForward / playerTotal) * 100,
-                backwardPercent: (playerBackward / playerTotal) * 100,
-                stoppedPercent: 100 -
-                    (playerForward / playerTotal) * 100 -
-                    (playerBackward / playerTotal) * 100,
-              )
+                      forwardPercent: (playerForward / playerTotal) * 100,
+                      backwardPercent: (playerBackward / playerTotal) * 100,
+                      stoppedPercent: 100 -
+                          (playerForward / playerTotal) * 100 -
+                          (playerBackward / playerTotal) * 100,
+                    )
+                  : const Center(child: Text("No data")),
+            ),
+            SizedBox(width: AppSize.s16.w),
+            Expanded(
+              child: opponentTotal > 0
+                  ? CustomPieChart(
+                      forwardPercent: (opponentForward / opponentTotal) * 100,
+                      backwardPercent: (opponentBackward / opponentTotal) * 100,
+                      stoppedPercent: 100 -
+                          (opponentForward / opponentTotal) * 100 -
+                          (opponentBackward / opponentTotal) * 100,
+                    )
                   : const Center(child: Text("No data")),
             ),
           ],
@@ -349,8 +406,10 @@ class _FencingAnalysisViewState extends State<FencingAnalysisView> {
     );
   }
 
-  Widget _buildQuickStatsSection(MatchDetailsEntity playerMatchData) {
+  Widget _buildQuickStatsSection(MatchDetailsEntity playerMatchData,
+      MatchDetailsEntity opponentMatchData) {
     final playerStats = _calculateStats(playerMatchData);
+    final opponentStats = _calculateStats(opponentMatchData);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -361,6 +420,7 @@ class _FencingAnalysisViewState extends State<FencingAnalysisView> {
           columnWidths: const {
             0: FlexColumnWidth(2),
             1: FlexColumnWidth(1),
+            2: FlexColumnWidth(1),
           },
           children: [
             TableRow(
@@ -368,25 +428,43 @@ class _FencingAnalysisViewState extends State<FencingAnalysisView> {
               children: [
                 _buildTableCell('Stat', isHeader: true),
                 _buildTableCell(playerName, isHeader: true, color: Colors.blue),
+                _buildTableCell(opponentName,
+                    isHeader: true, color: Colors.red),
               ],
             ),
-            _buildTableRow('Average Speed', "${playerStats['avgSpeed']} m/s"),
-            _buildTableRow('Max Forward Speed', "${playerStats['maxForwardSpeed']} m/s"),
-            _buildTableRow('Max Backward Speed', "${playerStats['maxBackwardSpeed']} m/s"),
-            _buildTableRow('Direction Changes', "${playerStats['directionChanges']}"),
-            _buildTableRow('Total Points', "${playerStats['totalPoints']}"),
-            _buildTableRow('Avg Time Between Points', "${playerStats['avgTimeBetweenPoints']} s"),
+            _buildTableRow('Average Speed', "${playerStats['avgSpeed']} m/s",
+                "${opponentStats['avgSpeed']} m/s"),
+            _buildTableRow(
+                'Max Forward Speed',
+                "${playerStats['maxForwardSpeed']} m/s",
+                "${opponentStats['maxForwardSpeed']} m/s"),
+            _buildTableRow(
+                'Max Backward Speed',
+                "${playerStats['maxBackwardSpeed']} m/s",
+                "${opponentStats['maxBackwardSpeed']} m/s"),
+            _buildTableRow(
+                'Direction Changes',
+                "${playerStats['directionChanges']}",
+                "${opponentStats['directionChanges']}"),
+            _buildTableRow('Total Points', "${playerStats['totalPoints']}",
+                "${opponentStats['totalPoints']}"),
+            _buildTableRow(
+                'Avg Time Between Points',
+                "${playerStats['avgTimeBetweenPoints']} s",
+                "${opponentStats['avgTimeBetweenPoints']} s"),
           ],
         ),
       ],
     );
   }
 
-  TableRow _buildTableRow(String title, String playerValue) {
+  TableRow _buildTableRow(
+      String title, String playerValue, String opponentValue) {
     return TableRow(
       children: [
         _buildTableCell(title),
         _buildTableCell(playerValue, color: Colors.blue),
+        _buildTableCell(opponentValue, color: Colors.red),
       ],
     );
   }
@@ -420,14 +498,14 @@ class _FencingAnalysisViewState extends State<FencingAnalysisView> {
     );
   }
 
-  double _calculateAverageSpeed(List<MatchDataEntity> matchData) {
+  double _calculateAverageSpeed(List<PlayerMovementData> matchData) {
     if (matchData.isEmpty) return 0.0;
     double totalSpeed =
-    matchData.fold(0.0, (sum, data) => sum + data.speed.abs());
+        matchData.fold(0.0, (sum, data) => sum + data.speed.abs());
     return double.parse((totalSpeed / matchData.length).toStringAsFixed(1));
   }
 
-  double _calculateMaxForwardSpeed(List<MatchDataEntity> matchData) {
+  double _calculateMaxForwardSpeed(List<PlayerMovementData> matchData) {
     var forwardSpeeds = matchData
         .where((data) => data.direction == 1)
         .map((data) => data.speed.abs());
@@ -436,7 +514,7 @@ class _FencingAnalysisViewState extends State<FencingAnalysisView> {
         : double.parse(forwardSpeeds.reduce(math.max).toStringAsFixed(1));
   }
 
-  double _calculateMaxBackwardSpeed(List<MatchDataEntity> matchData) {
+  double _calculateMaxBackwardSpeed(List<PlayerMovementData> matchData) {
     var backwardSpeeds = matchData
         .where((data) => data.direction == -1)
         .map((data) => data.speed.abs());
@@ -445,14 +523,14 @@ class _FencingAnalysisViewState extends State<FencingAnalysisView> {
         : double.parse(backwardSpeeds.reduce(math.max).toStringAsFixed(1));
   }
 
-  int _calculateDirectionChanges(List<MatchDataEntity> matchData) {
+  int _calculateDirectionChanges(List<PlayerMovementData> matchData) {
     if (matchData.length < 2) return 0;
     return matchData
         .asMap()
         .entries
         .skip(1)
         .where((entry) =>
-    entry.value.direction != matchData[entry.key - 1].direction)
+            entry.value.direction != matchData[entry.key - 1].direction)
         .length;
   }
 
@@ -474,7 +552,7 @@ class _FencingAnalysisViewState extends State<FencingAnalysisView> {
       'directionChanges': _calculateDirectionChanges(matchData.matchData),
       'totalPoints': matchData.pointData.length,
       'avgTimeBetweenPoints':
-      _calculateAverageTimeBetweenPoints(matchData.pointData),
+          _calculateAverageTimeBetweenPoints(matchData.pointData),
     };
   }
 }
