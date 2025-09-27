@@ -4,8 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:syncfusion_flutter_sliders/sliders.dart';
+import 'package:tranex_users/domain/models/fencing_training_enitity.dart';
+import 'package:tranex_users/domain/models/fitness_training_enttity.dart';
 import 'package:tranex_users/domain/models/models.dart';
 import 'package:tranex_users/domain/models/trainee_model.dart';
+import 'package:tranex_users/domain/models/training_entity.dart';
 import 'package:tranex_users/presentation/all_trainings_screen/live_chart.dart';
 import 'package:tranex_users/presentation/all_trainings_screen/range_selector.dart';
 import 'package:tranex_users/presentation/fencing_match/widgets/custom_pie_chart.dart';
@@ -14,8 +17,8 @@ import 'package:tranex_users/presentation/resources/values_manager.dart';
 
 
 class TrainingAnalysisView extends StatefulWidget {
-  final TraineeData training;
-  final TraineeData? previousTraining;
+  final TrainingEntity training;
+  final TrainingEntity? previousTraining;
 
   const TrainingAnalysisView({
     super.key,

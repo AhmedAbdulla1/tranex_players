@@ -439,7 +439,7 @@ class SupabaseService {
     }
   }
 
-  Future<Map<String, dynamic>> getTrainingData(
+  Future<List<Map<String, dynamic>>> getTrainingData(
       GetTrainingRequest request) async {
     try {
       final supabase = Supabase.instance.client;
@@ -453,7 +453,7 @@ class SupabaseService {
       // بناء الاستعلام مع شرط لاسترجاع الداتا من startDate وما بعد فقط
       var query = supabase
           .from('training')
-          .select('training_details, created_at, exercise_id')
+          .select('training_details, created_at, id')
           .eq('player_uid', request.traineeId)
           .eq('exercise_id', request.exerciseId)
           .gte('created_at',
@@ -464,29 +464,29 @@ class SupabaseService {
       final response = await query;
 
       // معالجة الاستجابة
-      if (response.isNotEmpty) {
-        // تحويل الداتا إلى قائمة من الخرائط
-        final data = response.map((item) {
-          // تحقق إضافي للتأكد من أن created_at ضمن الفترة
-          final createdAt = DateTime.parse(item['created_at']);
-          if (createdAt.isBefore(startDate)) {
-            // هذا لن يحدث بسبب gte، لكن كإجراء احترازي
-            throw Exception('Retrieved data older than specified period');
-          }
-          return {
-            'training_details': item['training_details'],
-            'created_at': item['created_at'],
-            'exercise_id': item['exercise_id'],
-          };
-        }).toList();
-
-        return {'data': data};
-      }
+      // if (response.isNotEmpty) {
+      //   // تحويل الداتا إلى قائمة من الخرائط
+      //   final data = response.map((item) {
+      //     // تحقق إضافي للتأكد من أن created_at ضمن الفترة
+      //     final createdAt = DateTime.parse(item['created_at']);
+      //     if (createdAt.isBefore(startDate)) {
+      //       // هذا لن يحدث بسبب gte، لكن كإجراء احترازي
+      //       throw Exception('Retrieved data older than specified period');
+      //     }
+      //     return {
+      //       'training_details': item['training_details'],
+      //       'created_at': item['created_at'],
+      //       'exercise_id': item['exercise_id'],
+      //     };
+      //   }).toList();
+      //
+      //   return  data;
+      // }
       log('No data returned from Supabase.');
-      return {'empty': true};
+      return query;
     } catch (e) {
       log('Error fetching training data: $e');
-      return {'exist': false, 'error': e.toString()};
+      throw Exception('Error Error fetching training data ');
     }
   }
 }

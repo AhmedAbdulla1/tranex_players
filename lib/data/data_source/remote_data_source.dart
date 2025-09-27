@@ -56,7 +56,7 @@ abstract class RemoteDataSource {
 
   Future addTrainingDataResponse(AddTrainingRequest addTrainingDataRequest);
 
-  Future<Map<String, dynamic>> getTrainingDataResponse(
+  Future<List<Map<String, dynamic>>> getTrainingDataResponse(
       GetTrainingRequest getTrainingDataRequest);
 
   Future<Map<String, dynamic>> getLastTrainingDataResponse(
@@ -195,7 +195,7 @@ class RemoteDataSourceImpl extends RemoteDataSource {
   }
 
   @override
-  Future<Map<String, dynamic>> getTrainingDataResponse(
+  Future<List< Map<String, dynamic>>> getTrainingDataResponse(
       GetTrainingRequest getTrainingDataRequest) async {
     return _supabaseService.getTrainingData(getTrainingDataRequest);
   }

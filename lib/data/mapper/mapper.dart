@@ -4,6 +4,7 @@ import 'package:tranex_users/app/extensions.dart';
 import 'package:tranex_users/data/response/responses.dart';
 import 'package:tranex_users/domain/models/models.dart';
 import 'package:tranex_users/domain/models/trainee_model.dart';
+import 'package:tranex_users/domain/models/training_entity.dart';
 
 extension UserDataResponseMapper on UserDataResponse? {
   UserData toDomain() {
@@ -109,6 +110,13 @@ extension TeamsMapper on List<Map<String, dynamic>> {
         interval: e['interval'],
         weight: e['weight'],
       )).toList();
+
+  AllTrainingsEntity trainingsToDomain() {
+    return AllTrainingsEntity(
+        allTrainings:
+            map((Map<String, dynamic> data) => data.trainingEntityToDomain())
+                .toList());
+  }
 }
 
 extension TrainingDataExtension on Map<String, dynamic> {
@@ -164,33 +172,10 @@ extension TrainingDataExtension on Map<String, dynamic> {
       weight: weight,
       timeBySeconds: timeBySeconds,
     );
-    // } catch (e, stackTrace) {
-    //   // تسجيل الخطأ في وحدة التحكم
-    //   print('Error converting data to domain: $e');
-    //
-    //   // رمي الخطأ للسماح للطبقات العليا بمعالجته
-    //   rethrow;
-    // }
   }
 
-  TrainingData trainingDataToDomain() {
-    print('trainingDataToDomain');
-    List<Map<String, dynamic>> data = this['data'] ?? [];
-    int numOfSets = 0;
-    int overAllTime = 0;
-    List<Data> trainingData = data.map((e) {
-      Data d = e.dataToDomain();
-      overAllTime += d.timeBySeconds;
-      return d;
-    }).toList();
-    return TrainingData(
-      trainingId: this['exerciseId'] ?? '',
-      overAllReps: trainingData.length,
-      overAllSets: numOfSets,
-      overAllTime: overAllTime,
-      score: 0.0,
-      data: trainingData,
-    );
+  TrainingEntity trainingEntityToDomain() {
+    return TrainingEntity.fromJson(this);
   }
 
   TraineeData traineeDataToDomain() {
@@ -206,15 +191,19 @@ extension TrainingDataExtension on Map<String, dynamic> {
         exercise: {});
   }
 }
+
 extension UserMapper on User {
   TraineeData userToTraineeData() {
     final metadata = userMetadata ?? {};
 
     return TraineeData(
-      traineeId: id, // من Supabase User
-      traineeName: metadata['full_name'] ?? '', // أو name
+      traineeId: id,
+      // من Supabase User
+      traineeName: metadata['full_name'] ?? '',
+      // أو name
       photo: metadata['profile_image'] ?? '',
-      isActive: metadata['is_active'] ?? true, // default true لو مش موجود
+      isActive: metadata['is_active'] ?? true,
+      // default true لو مش موجود
       isFencer: metadata['is_fencer'] ?? false,
       country: metadata['country'] ?? 'EG',
       weaponType: metadata['weapon_type'],

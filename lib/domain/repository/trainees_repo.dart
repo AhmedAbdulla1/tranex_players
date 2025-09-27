@@ -4,10 +4,11 @@ import 'package:tranex_users/data/network/requests.dart';
 import 'package:tranex_users/domain/models/matches_entity.dart';
 import 'package:tranex_users/domain/models/models.dart';
 import 'package:tranex_users/domain/models/trainee_model.dart';
+import 'package:tranex_users/domain/models/training_entity.dart';
 
 abstract class TraineesRepository {
   Future<Either<Failure, MatchesEntity>> getMatches(String traineeId);
-  Future<Either<Failure, TrainingData>> getTrainingData(
+  Future<Either<Failure, AllTrainingsEntity>> getTrainingData(
       GetTrainingRequest getTrainingRequest);
   Future<Either<Failure, void>> addTrainingData(
       AddTrainingRequest addTrainingRequest);

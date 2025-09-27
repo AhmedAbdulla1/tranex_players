@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:tranex_users/domain/models/fencing_training_enitity.dart';
 import 'package:tranex_users/domain/models/models.dart';
+import 'package:tranex_users/domain/models/training_entity.dart';
+import 'package:tranex_users/presentation/all_trainings_screen/training_analysis.dart';
 
 class TrainingListWidget extends StatefulWidget {
-  final List<TrainingData> trainings;
+  final List<TrainingEntity> trainings;
 
   const TrainingListWidget({super.key, required this.trainings});
 
@@ -38,7 +41,7 @@ class _TrainingListWidgetState extends State<TrainingListWidget> {
             children: [
               ListTile(
                 leading: Icon(
-                  training.data
+                  training.trainingDetails is FencingTrainingDetails
                       ? Icons.sports_gymnastics
                       : Icons.fitness_center,
                   color: Colors.blueAccent,

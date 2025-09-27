@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:developer';
+import 'dart:ffi';
 
 import 'package:dartz/dartz.dart';
 import 'package:rxdart/rxdart.dart';
@@ -38,6 +39,7 @@ class DashboardViewModel extends DashboardViewModelOutput {
   int? exerciseId;
   final UserUsecase _userUsecase;
   bool getTraineeData = false;
+
   DashboardViewModel(this._userUsecase);
 
   @override
@@ -166,7 +168,7 @@ class DashboardViewModel extends DashboardViewModelOutput {
     }
   }
 
-  double _calculateListAverage(FitnessTrainingDetails list) {
+  double _calculateListAverage(List<double> list) {
     if (list.isEmpty) return 0.0;
     return list.reduce((a, b) => a + b) / list.length;
   }
@@ -197,10 +199,10 @@ class DashboardViewModel extends DashboardViewModelOutput {
       if (weekIndex >= 5) continue;
 
       if (data.trainingDetails is FitnessTrainingDetails) {
-        double draftingAvg = _calculateListAverage(
-            data.trainingDetails as FitnessTrainingDetails);
-        double distressAvg = _calculateListAverage(
-            data.trainingDetails as FitnessTrainingDetails);
+        FitnessTrainingDetails fitneesData =
+            data.trainingDetails as FitnessTrainingDetails;
+        double draftingAvg = _calculateListAverage(fitneesData.eccForce);
+        double distressAvg = _calculateListAverage(fitneesData.conForce);
         weeklyDraftingSums[weekIndex].add(draftingAvg);
         weeklyDistressSums[weekIndex].add(distressAvg);
         log(
@@ -236,39 +238,40 @@ class DashboardViewModel extends DashboardViewModelOutput {
   }
 
   Tuple<List<double>, List<double>> calculateMonthlyAverage(
-      List<Data> dataList) {
+      AllTrainingsEntity dataList) {
     List<double> monthAverageDrafting = [0.0, 0.0, 0.0, 0.0];
     List<double> monthAverageDistress = [0.0, 0.0, 0.0, 0.0];
 
     try {
-      if (dataList.isEmpty) {
+      if (dataList.allTrainings.isEmpty) {
         log("Data list is empty, returning default averages.",
             name: 'MonthlyAverage');
         return Tuple(monthAverageDrafting, monthAverageDistress);
       }
 
       // Sort data by date (newest to oldest)
-      dataList.sort((a, b) => b.date.compareTo(a.date));
-      log("Sorted dataList: ${dataList.map((e) => e.date).toList()}",
-          name: 'MonthlyAverage');
+      dataList.allTrainings.sort((a, b) => b.createdAt.compareTo(a.createdAt));
 
       int monthIndex = 0;
       Map<String, List<double>> monthlyDraftingSums = {};
       Map<String, List<double>> monthlyDistressSums = {};
 
-      for (Data data in dataList) {
-        DateTime date = data.date;
+      for (TrainingEntity data in dataList.allTrainings) {
+        DateTime date = data.createdAt;
         String monthKey =
             '${date.year}-${date.month.toString().padLeft(2, '0')}'; // Ensure month is two digits
         log("Processing data for date: $date, Month: $monthKey",
             name: 'MonthlyAverage');
+        if (data.trainingDetails is FitnessTrainingDetails) {
+          FitnessTrainingDetails fitneesData =
+              data.trainingDetails as FitnessTrainingDetails;
+          // Calculate averages for this data point
+          double draftingAvg = _calculateListAverage(fitneesData.eccForce);
+          double distressAvg = _calculateListAverage(fitneesData.conForce);
 
-        // Calculate averages for this data point
-        double draftingAvg = _calculateListAverage(data.eccForce);
-        double distressAvg = _calculateListAverage(data.conForce);
-
-        monthlyDraftingSums.putIfAbsent(monthKey, () => []).add(draftingAvg);
-        monthlyDistressSums.putIfAbsent(monthKey, () => []).add(distressAvg);
+          monthlyDraftingSums.putIfAbsent(monthKey, () => []).add(draftingAvg);
+          monthlyDistressSums.putIfAbsent(monthKey, () => []).add(distressAvg);
+        }
       }
 
       // Sort months by date (newest to oldest)
@@ -308,6 +311,7 @@ class DashboardViewModel extends DashboardViewModelOutput {
 
   @override
   Sink get inputGetTraineeData => _getTraineeDataController.sink;
+
   @override
   Stream<bool> get outGetTraineeData => _getTraineeDataController.stream;
 }

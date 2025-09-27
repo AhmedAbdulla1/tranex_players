@@ -307,28 +307,31 @@ class _DashboardViewState extends State<DashboardView> {
                         color: ColorManager.simiBlue,
                         indent: 0,
                       ),
-                      StreamBuilder<TrainingEntity>(
-                          stream: _viewModel.outputRepsData,
-                          builder: (context, snapshot) {
-                         overAllSets=   snapshot.data.
-                            return Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceAround,
-                              children: [
-                                customColumn(
-                                    value: (snapshot.data?.overAllSets ?? 0)
-                                        .toString(),
-                                    title: "Sets"),
-                                customColumn(
-                                    value: (snapshot.data?.overAllReps ?? 0)
-                                        .toString(),
-                                    title: "Reps"),
-                                customColumn(
-                                    value: (snapshot.data?.overAllTime ?? 0)
-                                        .convertSecondsToHMS(),
-                                    title: "Time"),
-                              ],
-                            );
-                          }),
+
+                     //todo fix it in future;
+
+                      // StreamBuilder<AllTrainingsEntity>(
+                      //     stream: _viewModel.outputRepsData,
+                      //     builder: (context, snapshot) {
+                      //    overAllSets=   snapshot.data.  ;
+                      //       return Row(
+                      //         mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      //         children: [
+                      //           customColumn(
+                      //               value: (snapshot.data?.overAllSets ?? 0)
+                      //                   .toString(),
+                      //               title: "Sets"),
+                      //           customColumn(
+                      //               value: (snapshot.data?.overAllReps ?? 0)
+                      //                   .toString(),
+                      //               title: "Reps"),
+                      //           customColumn(
+                      //               value: (snapshot.data?.overAllTime ?? 0)
+                      //                   .convertSecondsToHMS(),
+                      //               title: "Time"),
+                      //         ],
+                      //       );
+                      //     }),
                     ],
                   ),
                 ),

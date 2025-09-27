@@ -4,6 +4,7 @@ import 'package:tranex_users/data/network/failure.dart';
 import 'package:tranex_users/data/network/requests.dart';
 import 'package:tranex_users/domain/models/models.dart';
 import 'package:tranex_users/domain/models/trainee_model.dart';
+import 'package:tranex_users/domain/models/training_entity.dart';
 import 'package:tranex_users/domain/repository/trainees_repo.dart';
 
 class TrainingUsecase {
@@ -14,7 +15,7 @@ class TrainingUsecase {
     return _repository.checkTraineeExistence(traineeId);
   }
 
-  Future<Either<Failure, TrainingData>> getTrainingData(
+  Future<Either<Failure, AllTrainingsEntity>> getTrainingData(
       GetTrainingRequest getTrainingRequest) {
     return _repository.getTrainingData(getTrainingRequest);
   }
