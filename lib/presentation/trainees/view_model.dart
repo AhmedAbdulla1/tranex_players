@@ -2,31 +2,30 @@ import 'dart:async';
 import 'dart:ffi';
 import 'dart:io';
 
+import 'package:rxdart/rxdart.dart';
 import 'package:tranex_users/app/di.dart';
-import 'package:tranex_users/domain/models/models.dart';
+import 'package:tranex_users/domain/models/trainee_model.dart';
 import 'package:tranex_users/domain/repository/trainees_repo.dart';
 import 'package:tranex_users/domain/usecase/get_trainees.dart';
 import 'package:tranex_users/presentation/base/base_view_model.dart';
 import 'package:tranex_users/presentation/common/state_render/state_render.dart';
 import 'package:tranex_users/presentation/common/state_render/state_renderer_imp.dart';
-import 'package:rxdart/rxdart.dart';
 
 class TraineesViewModel extends TraineesViewModelOutput {
   final StreamController<String> _searchStreamController =
-  BehaviorSubject<String>();
+      BehaviorSubject<String>();
   final StreamController<List<TraineeData>> _filteredDataStreamController =
-  BehaviorSubject<List<TraineeData>>();
+      BehaviorSubject<List<TraineeData>>();
   final StreamController<File> _addImageStreamController =
-  BehaviorSubject<File>();
+      BehaviorSubject<File>();
   final StreamController<String> _categoryStreamController =
-  BehaviorSubject<String>();
+      BehaviorSubject<String>();
   final StreamController<String> _exerciseNameStreamController =
-  BehaviorSubject<String>();
+      BehaviorSubject<String>();
   final GetTraineesUseCase _useCase =
-  GetTraineesUseCase(instance<TraineesRepository>());
+      GetTraineesUseCase(instance<TraineesRepository>());
   List<TraineeData> originalData = [];
   List<TraineeData> filteredData = [];
-
 
   @override
   void start() {
@@ -56,8 +55,6 @@ class TraineesViewModel extends TraineesViewModelOutput {
     });
   }
 
-
-
   @override
   Sink get inputSearch => _searchStreamController.sink;
 
@@ -69,7 +66,7 @@ class TraineesViewModel extends TraineesViewModelOutput {
     if (search.isNotEmpty) {
       final List<TraineeData> filteredValues = originalData
           .where((trainee) =>
-          trainee.traineeName.toLowerCase().contains(search.toLowerCase()))
+              trainee.traineeName.toLowerCase().contains(search.toLowerCase()))
           .toList();
 
       filteredData = filteredValues;
@@ -112,9 +109,9 @@ class TraineesViewModel extends TraineesViewModelOutput {
 
   @override
   setNewExercise(
-      String category,
-      String name,
-      ) async {
+    String category,
+    String name,
+  ) async {
     // List<String> traineeList =
     //     // traineeData.get(category, defaultValue: []) as List<String>;
     // traineeList.add(name);

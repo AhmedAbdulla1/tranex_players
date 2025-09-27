@@ -1,19 +1,21 @@
 import 'dart:async';
 import 'dart:developer';
+
+import 'package:dartz/dartz.dart';
+import 'package:rxdart/rxdart.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:tranex_users/data/network/failure.dart';
 import 'package:tranex_users/data/network/requests.dart';
+import 'package:tranex_users/domain/models/fitness_training_enttity.dart';
 import 'package:tranex_users/domain/models/models.dart';
-
+import 'package:tranex_users/domain/models/trainee_model.dart';
+import 'package:tranex_users/domain/models/training_entity.dart';
 import 'package:tranex_users/domain/usecase/training_data_usecase.dart';
 import 'package:tranex_users/domain/usecase/user_usecase.dart';
 import 'package:tranex_users/presentation/base/base_view_model.dart';
 import 'package:tranex_users/presentation/common/state_render/state_render.dart';
 import 'package:tranex_users/presentation/common/state_render/state_renderer_imp.dart';
 import 'package:tranex_users/presentation/resources/string_manager.dart';
-import 'package:dartz/dartz.dart';
-
-import 'package:rxdart/rxdart.dart';
 
 class DashboardViewModel extends DashboardViewModelOutput {
   final StreamController<User> _streamController = BehaviorSubject<User>();
@@ -28,9 +30,9 @@ class DashboardViewModel extends DashboardViewModelOutput {
   final StreamController<Tuple<List<double>, List<double>>>
       _trainerDataController =
       BehaviorSubject<Tuple<List<double>, List<double>>>();
-  final StreamController<TrainingData> _repsController =
-      BehaviorSubject<TrainingData>();
-final StreamController<bool> _getTraineeDataController =
+  final StreamController<AllTrainingsEntity> _repsController =
+      BehaviorSubject<AllTrainingsEntity>();
+  final StreamController<bool> _getTraineeDataController =
       BehaviorSubject<bool>();
   String? teamId;
   int? exerciseId;
@@ -128,8 +130,8 @@ final StreamController<bool> _getTraineeDataController =
   setTraineeData(TraineeData? trainee, {bool weekly = true}) async {
     TrainingUsecase useCase = TrainingUsecase();
     if (exerciseId != null && trainee != null) {
-    inputGetTraineeData.add(true);
-      Either<Failure, TrainingData> trainingData =
+      inputGetTraineeData.add(true);
+      Either<Failure, AllTrainingsEntity> trainingData =
           await useCase.getTrainingData(
         GetTrainingRequest(
           traineeId: trainee.traineeId,
@@ -145,19 +147,18 @@ final StreamController<bool> _getTraineeDataController =
               retryAction: () {
                 inputState.add(ContentState());
               }),
-
         );
         inputGetTraineeData.add(false);
       }, (data) {
-
         log('after fetching training data');
+        // log("Data: ${data.allTrainings.()}");
         _repsController.add(data);
         Tuple<List<double>, List<double>> tuple = weekly
             ? calculateWeeklyAverage(
-                data.data,
+                data,
               )
             : calculateMonthlyAverage(
-                data.data,
+                data,
               );
         inputGetTraineeData.add(false);
         _trainerDataController.add(tuple);
@@ -165,92 +166,91 @@ final StreamController<bool> _getTraineeDataController =
     }
   }
 
-
-  double _calculateListAverage(List<double> list) {
+  double _calculateListAverage(FitnessTrainingDetails list) {
     if (list.isEmpty) return 0.0;
     return list.reduce((a, b) => a + b) / list.length;
   }
 
-  Tuple<List<double>, List<double>> calculateWeeklyAverage(List<Data> dataList) {
+  Tuple<List<double>, List<double>> calculateWeeklyAverage(
+      AllTrainingsEntity dataList) {
     List<double> weekAverageDrafting = [0.0, 0.0, 0.0, 0.0, 0.0];
     List<double> weekAverageDistress = [0.0, 0.0, 0.0, 0.0, 0.0];
 
     // try {
-      if (dataList.isEmpty) {
-       log("Data list is empty, returning default averages.", name: 'WeeklyAverage');
-        return Tuple(weekAverageDrafting, weekAverageDistress);
-      }
+    if (dataList.allTrainings.isEmpty) {
+      log("Data list is empty, returning default averages.",
+          name: 'WeeklyAverage');
+      return Tuple(weekAverageDrafting, weekAverageDistress);
+    }
 
+    final today = DateTime.now();
+    log("Calculating weeks starting from: $today", name: 'WeeklyAverage');
 
-      // ????? ????? ????? (???? ????? ?????????)
-      final today = DateTime.now();
-     log("Calculating weeks starting from: $today", name: 'WeeklyAverage');
+    List<List<double>> weeklyDraftingSums = [[], [], [], [], []];
+    List<List<double>> weeklyDistressSums = [[], [], [], [], []];
 
-      // ????? ????? ?????? ??????? ????????
-      List<List<double>> weeklyDraftingSums = [[], [], [], [], []];
-      List<List<double>> weeklyDistressSums = [[], [], [], [], []];
+    for (TrainingEntity data in dataList.allTrainings) {
+      DateTime date = data.createdAt;
+      int daysSinceToday = today.difference(date).inDays;
 
-      for (Data data in dataList) {
-        DateTime date = data.date;
-        // ???? ??? ?????? ??? ?????
-        int daysSinceToday = today.difference(date).inDays;
+      int weekIndex = daysSinceToday ~/ 7;
+      if (weekIndex >= 5) continue;
 
-        // ????? ??????? (0 = ??????? ??????? 1 = ??????? ??????? ???)
-        int weekIndex = daysSinceToday ~/ 7; // ????? ??? ?????? ??? 7
-        if (weekIndex >= 5) continue; // ????? ???????? ?????? ?? 5 ??????
-
-        // ???? ????? ????? ??? ????
-        double draftingAvg = _calculateListAverage(data.eccForce);
-        double distressAvg = _calculateListAverage(data.conForce);
-
-        // ????? ????????? ??? ??????? ???????
+      if (data.trainingDetails is FitnessTrainingDetails) {
+        double draftingAvg = _calculateListAverage(
+            data.trainingDetails as FitnessTrainingDetails);
+        double distressAvg = _calculateListAverage(
+            data.trainingDetails as FitnessTrainingDetails);
         weeklyDraftingSums[weekIndex].add(draftingAvg);
         weeklyDistressSums[weekIndex].add(distressAvg);
-       log(
+        log(
           "Date: $date, Week: $weekIndex, Drafting: $draftingAvg, Distress: $distressAvg",
           name: 'WeeklyAverage',
         );
       }
+    }
 
-      // ???? ??????? ????????
-      for (int i = 0; i < 5; i++) {
-        if (weeklyDraftingSums[i].isNotEmpty) {
-          double draftingAvg = _calculateListAverage(weeklyDraftingSums[i]);
-          double distressAvg = _calculateListAverage(weeklyDistressSums[i]);
-          weekAverageDrafting[i] = double.parse(draftingAvg.toStringAsFixed(2));
-          weekAverageDistress[i] = double.parse(distressAvg.toStringAsFixed(2));
-         log(
-            "Week $i Average Drafting: ${weekAverageDrafting[i]}, Distress: ${weekAverageDistress[i]}",
-            name: 'WeeklyAverage',
-          );
-        }
+    for (int i = 0; i < 5; i++) {
+      if (weeklyDraftingSums[i].isNotEmpty) {
+        double draftingAvg = _calculateListAverage(weeklyDraftingSums[i]);
+        double distressAvg = _calculateListAverage(weeklyDistressSums[i]);
+        weekAverageDrafting[i] = double.parse(draftingAvg.toStringAsFixed(2));
+        weekAverageDistress[i] = double.parse(distressAvg.toStringAsFixed(2));
+        log(
+          "Week $i Average Drafting: ${weekAverageDrafting[i]}, Distress: ${weekAverageDistress[i]}",
+          name: 'WeeklyAverage',
+        );
       }
+    }
 
-     log(
-        "Final Weekly Averages - Drafting: $weekAverageDrafting, Distress: $weekAverageDistress",
-        name: 'WeeklyAverage',
-      );
+    log(
+      "Final Weekly Averages - Drafting: $weekAverageDrafting, Distress: $weekAverageDistress",
+      name: 'WeeklyAverage',
+    );
 
-      return Tuple(weekAverageDrafting, weekAverageDistress);
+    return Tuple(weekAverageDrafting, weekAverageDistress);
     // } catch (e, stackTrace) {
     //  log("Error calculating weekly averages: $e", name: 'WeeklyAverage');
     //   return Tuple(weekAverageDrafting, weekAverageDistress);
     // }
   }
 
-  Tuple<List<double>, List<double>> calculateMonthlyAverage(List<Data> dataList) {
+  Tuple<List<double>, List<double>> calculateMonthlyAverage(
+      List<Data> dataList) {
     List<double> monthAverageDrafting = [0.0, 0.0, 0.0, 0.0];
     List<double> monthAverageDistress = [0.0, 0.0, 0.0, 0.0];
 
     try {
       if (dataList.isEmpty) {
-        log("Data list is empty, returning default averages.", name: 'MonthlyAverage');
+        log("Data list is empty, returning default averages.",
+            name: 'MonthlyAverage');
         return Tuple(monthAverageDrafting, monthAverageDistress);
       }
 
       // Sort data by date (newest to oldest)
       dataList.sort((a, b) => b.date.compareTo(a.date));
-      log("Sorted dataList: ${dataList.map((e) => e.date).toList()}", name: 'MonthlyAverage');
+      log("Sorted dataList: ${dataList.map((e) => e.date).toList()}",
+          name: 'MonthlyAverage');
 
       int monthIndex = 0;
       Map<String, List<double>> monthlyDraftingSums = {};
@@ -258,8 +258,10 @@ final StreamController<bool> _getTraineeDataController =
 
       for (Data data in dataList) {
         DateTime date = data.date;
-        String monthKey = '${date.year}-${date.month.toString().padLeft(2, '0')}'; // Ensure month is two digits
-        log("Processing data for date: $date, Month: $monthKey", name: 'MonthlyAverage');
+        String monthKey =
+            '${date.year}-${date.month.toString().padLeft(2, '0')}'; // Ensure month is two digits
+        log("Processing data for date: $date, Month: $monthKey",
+            name: 'MonthlyAverage');
 
         // Calculate averages for this data point
         double draftingAvg = _calculateListAverage(data.eccForce);
@@ -271,7 +273,8 @@ final StreamController<bool> _getTraineeDataController =
 
       // Sort months by date (newest to oldest)
       var sortedMonths = monthlyDraftingSums.keys.toList()
-        ..sort((a, b) => DateTime.parse('$b-01').compareTo(DateTime.parse('$a-01')));
+        ..sort((a, b) =>
+            DateTime.parse('$b-01').compareTo(DateTime.parse('$a-01')));
       for (int i = 0; i < sortedMonths.length && i < 4; i++) {
         String month = sortedMonths[i];
         double draftingAvg = _calculateListAverage(monthlyDraftingSums[month]!);
@@ -291,7 +294,8 @@ final StreamController<bool> _getTraineeDataController =
 
       return Tuple(monthAverageDrafting, monthAverageDistress);
     } catch (e, stackTrace) {
-      log("Error calculating monthly averages: $e\n$stackTrace", name: 'MonthlyAverage');
+      log("Error calculating monthly averages: $e\n$stackTrace",
+          name: 'MonthlyAverage');
       return Tuple(monthAverageDrafting, monthAverageDistress);
     }
   }
@@ -300,10 +304,10 @@ final StreamController<bool> _getTraineeDataController =
   Sink get inputRepsData => _repsController.sink;
 
   @override
-  Stream<TrainingData> get outputRepsData => _repsController.stream;
+  Stream<AllTrainingsEntity> get outputRepsData => _repsController.stream;
 
   @override
-  Sink get inputGetTraineeData => _getTraineeDataController.sink  ;
+  Sink get inputGetTraineeData => _getTraineeDataController.sink;
   @override
   Stream<bool> get outGetTraineeData => _getTraineeDataController.stream;
 }
@@ -347,9 +351,9 @@ abstract class DashboardViewModelOutput extends DashboardViewModelInput {
 
   Stream<Tuple<List<double>, List<double>>> get outTrainerData;
 
-  Stream<TrainingData> get outputRepsData;
+  Stream<AllTrainingsEntity> get outputRepsData;
 
-  Stream <bool> get outGetTraineeData;
+  Stream<bool> get outGetTraineeData;
 }
 
 class Tuple<T1, T2> {

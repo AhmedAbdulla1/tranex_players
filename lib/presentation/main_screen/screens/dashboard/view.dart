@@ -1,9 +1,18 @@
 import 'dart:math';
 
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:fl_chart/fl_chart.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:multiple_stream_builder/multiple_stream_builder.dart';
 import 'package:tranex_users/app/di.dart';
 import 'package:tranex_users/app/extensions.dart';
+import 'package:tranex_users/core/storage/hive_boxes.dart';
+import 'package:tranex_users/core/storage/hive_keys.dart';
+import 'package:tranex_users/core/storage/hive_manager.dart';
 import 'package:tranex_users/domain/models/models.dart';
+import 'package:tranex_users/domain/models/trainee_model.dart';
+import 'package:tranex_users/domain/models/training_entity.dart';
 import 'package:tranex_users/presentation/common/state_render/state_renderer_imp.dart';
 import 'package:tranex_users/presentation/exercises/view.dart';
 import 'package:tranex_users/presentation/main_screen/screens/dashboard/view_model.dart';
@@ -11,15 +20,8 @@ import 'package:tranex_users/presentation/matches_screen/view.dart';
 import 'package:tranex_users/presentation/resources/assets_manager.dart';
 import 'package:tranex_users/presentation/resources/color_manager.dart';
 import 'package:tranex_users/presentation/resources/font_manager.dart';
-import 'package:tranex_users/presentation/resources/routes_manager.dart';
 import 'package:tranex_users/presentation/resources/style_manager.dart';
 import 'package:tranex_users/presentation/resources/values_manager.dart';
-import 'package:tranex_users/presentation/trainees/view.dart';
-import 'package:fl_chart/fl_chart.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:multiple_stream_builder/multiple_stream_builder.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 class DashboardView extends StatefulWidget {
   const DashboardView({super.key});
@@ -57,12 +59,17 @@ class _DashboardViewState extends State<DashboardView> {
     );
   }
 
-  TraineeData? trainee;
+  TraineeData? trainee = HiveManager.get(
+    boxName: HiveBoxes.userDataBox,
+    key: HiveKeys.userDataKey,
+  );
 
   String exercise = '';
   bool weekly = true;
 
   Widget _getContent() {
+    print("Trainee Data: ${trainee!.toJson()}");
+
     return SingleChildScrollView(
       child: Padding(
         padding: EdgeInsets.all(AppPadding.p18.w),
@@ -75,23 +82,9 @@ class _DashboardViewState extends State<DashboardView> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                StreamBuilder<User>(
-                  stream: _viewModel.outputDashboard,
-                  builder: (context, snapshot) {
-                    if (snapshot.data != null) {
-                      return snapshot.data!.email != null
-                          ? _getAppBar(
-                              snapshot.data!.userMetadata?['display_name']
-                                      as String? ??
-                                  "",
-                              snapshot.data!.userMetadata?['photo_url'] ?? "",
-                            )
-                          : const SizedBox();
-                    } else {
-                      return const CircularProgressIndicator();
-                    }
-                  },
-                ),
+                trainee != null
+                    ? _getAppBar(trainee!.traineeName, trainee!.photo)
+                    : _getAppBar('User', ''),
                 SizedBox(
                   height: AppSize.s14.h,
                 ),
@@ -139,7 +132,7 @@ class _DashboardViewState extends State<DashboardView> {
                   height: AppSize.s14.h,
                 ),
                 Visibility(
-                  visible:true,
+                  visible: true,
                   child: Container(
                     decoration: BoxDecoration(
                         color: ColorManager.grey3,
@@ -314,9 +307,10 @@ class _DashboardViewState extends State<DashboardView> {
                         color: ColorManager.simiBlue,
                         indent: 0,
                       ),
-                      StreamBuilder<TrainingData>(
+                      StreamBuilder<TrainingEntity>(
                           stream: _viewModel.outputRepsData,
                           builder: (context, snapshot) {
+                         overAllSets=   snapshot.data.
                             return Row(
                               mainAxisAlignment: MainAxisAlignment.spaceAround,
                               children: [

@@ -1,10 +1,10 @@
-import 'package:tranex_users/domain/models/models.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:tranex_users/domain/models/trainee_model.dart';
 import 'package:tranex_users/presentation/resources/assets_manager.dart';
 import 'package:tranex_users/presentation/resources/color_manager.dart';
 import 'package:tranex_users/presentation/resources/font_manager.dart';
 import 'package:tranex_users/presentation/resources/style_manager.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class PlayerHeader extends StatelessWidget {
   final TraineeData traineeData;

@@ -1,13 +1,13 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:tranex_users/domain/models/matches_entity.dart';
-import 'package:tranex_users/domain/models/models.dart';
+import 'package:tranex_users/domain/models/trainee_model.dart';
 import 'package:tranex_users/presentation/analysis_screen/analysis_match.dart';
 import 'package:tranex_users/presentation/common/state_render/state_renderer_imp.dart';
 import 'package:tranex_users/presentation/matches_screen/view_model.dart';
 import 'package:tranex_users/presentation/resources/font_manager.dart';
 import 'package:tranex_users/presentation/resources/values_manager.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class MatchesView extends StatefulWidget {
   const MatchesView({super.key, required this.traineeData});

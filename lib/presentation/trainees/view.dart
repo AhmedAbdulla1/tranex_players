@@ -1,15 +1,14 @@
-import 'package:tranex_users/domain/models/models.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:tranex_users/domain/models/trainee_model.dart';
 import 'package:tranex_users/presentation/common/state_render/state_renderer_imp.dart';
 import 'package:tranex_users/presentation/resources/assets_manager.dart';
 import 'package:tranex_users/presentation/resources/color_manager.dart';
 import 'package:tranex_users/presentation/resources/font_manager.dart';
-import 'package:tranex_users/presentation/resources/string_manager.dart';
 import 'package:tranex_users/presentation/resources/style_manager.dart';
 import 'package:tranex_users/presentation/resources/values_manager.dart';
 import 'package:tranex_users/presentation/trainees/view_model.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class TrainersView extends StatefulWidget {
   const TrainersView({Key? key}) : super(key: key);
@@ -96,46 +95,40 @@ class _TrainersViewState extends State<TrainersView> {
                         snapshot.data!.isNotEmpty) {
                       TraineeData trainee = snapshot.data![index];
                       return Padding(
-                        padding: EdgeInsets.all(8),
+                        padding: const EdgeInsets.all(8),
                         child: InkWell(
                           onLongPress: () {
-                            _viewModel.inputState
-                                .add(DeleteState(retryAction: () {
-                              // _viewModel.delete(key, value);
-                            }, onCancel: (){}));
+                            _viewModel.inputState.add(DeleteState(
+                                retryAction: () {
+                                  // _viewModel.delete(key, value);
+                                },
+                                onCancel: () {}));
                           },
                           onTap: () {
-                            Navigator.pop(context,  trainee);
+                            Navigator.pop(context, trainee);
                           },
-                          child:
-                          Row
-                            (
+                          child: Row(
                             children: [
                               CircleAvatar(
                                 radius: AppSize.s32,
-                                backgroundColor:
-                                ColorManager.primary,
+                                backgroundColor: ColorManager.primary,
                                 child: CircleAvatar(
                                   radius: AppSize.s30,
-                                  foregroundImage: trainee.photo
-                                      .isNotEmpty
-                                      ? NetworkImage(
-                                      trainee.photo)
+                                  foregroundImage: trainee.photo.isNotEmpty
+                                      ? NetworkImage(trainee.photo)
                                       : const AssetImage(
-                                      ImageAssets
-                                          .trainingImage)
-                                  as ImageProvider,
+                                              ImageAssets.trainingImage)
+                                          as ImageProvider,
                                 ),
                               ),
-                              SizedBox(
+                              const SizedBox(
                                 width: AppSize.s14,
                               ),
                               Expanded(
                                 child: Text(
                                   trainee.traineeName,
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .labelMedium,
+                                  style:
+                                      Theme.of(context).textTheme.labelMedium,
                                   overflow: TextOverflow.ellipsis,
                                 ),
                               ),

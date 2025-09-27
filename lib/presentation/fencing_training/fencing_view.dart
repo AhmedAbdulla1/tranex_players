@@ -1,6 +1,11 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:provider/provider.dart';
 import 'package:tranex_users/data/network/requests.dart';
 import 'package:tranex_users/domain/models/matches_entity.dart';
 import 'package:tranex_users/domain/models/models.dart';
+import 'package:tranex_users/domain/models/trainee_model.dart';
 import 'package:tranex_users/presentation/common/reusable/charts/live_chart.dart';
 import 'package:tranex_users/presentation/common/reusable/custom_button.dart';
 import 'package:tranex_users/presentation/common/reusable/player_header.dart';
@@ -9,10 +14,6 @@ import 'package:tranex_users/presentation/fencing_training/fencing_training_view
 import 'package:tranex_users/presentation/fencing_training/nfc_status_widget.dart';
 import 'package:tranex_users/presentation/resources/assets_manager.dart';
 import 'package:tranex_users/presentation/resources/values_manager.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:provider/provider.dart';
 
 class FencingTrainingView extends StatefulWidget {
   final int device;
@@ -117,10 +118,10 @@ class _TrainingScreenState extends State<FencingTrainingView>
           body: StreamBuilder<StateFlow>(
             stream: vm.outputState,
             builder: (context, snapshot) =>
-            snapshot.data?.getScreenWidget(
-              context,
-              getBody(),
-            ) ??
+                snapshot.data?.getScreenWidget(
+                  context,
+                  getBody(),
+                ) ??
                 getBody(),
           ),
         ),
@@ -194,9 +195,9 @@ class _TrainingScreenState extends State<FencingTrainingView>
               onPressed: () {
                 vm.scanQRCode(context);
               },
-              child: Text(
+              child: const Text(
                 'Scan QR Code',
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
                   color: Colors.white,
@@ -217,9 +218,9 @@ class _TrainingScreenState extends State<FencingTrainingView>
               onPressed: () {
                 vm.scanQRCode(context);
               },
-              child: Text(
+              child: const Text(
                 'Scan QR Code',
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
                   color: Colors.white,
@@ -382,7 +383,7 @@ class _TrainingScreenState extends State<FencingTrainingView>
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content:
-          Text('Please set a time other than 0 minutes to start training'),
+              Text('Please set a time other than 0 minutes to start training'),
           backgroundColor: Colors.red,
         ),
       );
@@ -511,8 +512,8 @@ class _TrainingScreenState extends State<FencingTrainingView>
         final color = progress < 0.5
             ? Colors.green.shade400
             : progress < 0.8
-            ? Colors.orange.shade400
-            : Colors.red.shade400;
+                ? Colors.orange.shade400
+                : Colors.red.shade400;
 
         return Column(
           children: [
@@ -713,10 +714,10 @@ class _PointsCounter extends StatelessWidget {
     final color = progress > 0.7
         ? Colors.green.shade400
         : progress > 0.5
-        ? Colors.yellow.shade400
-        : progress > 0.2
-        ? Colors.orange.shade400
-        : Colors.red.shade400;
+            ? Colors.yellow.shade400
+            : progress > 0.2
+                ? Colors.orange.shade400
+                : Colors.red.shade400;
 
     return Column(
       children: [

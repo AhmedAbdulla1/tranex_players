@@ -1,10 +1,12 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:tranex_users/app/app_prefs.dart';
 import 'package:tranex_users/app/di.dart';
-import 'package:tranex_users/data/api_services/services_locator.dart';
 import 'package:tranex_users/presentation/common/reusable/custom_button.dart';
 import 'package:tranex_users/presentation/common/reusable/custom_text_form_field.dart';
 import 'package:tranex_users/presentation/common/state_render/state_renderer_imp.dart';
-import 'package:tranex_users/presentation/cubits/coaches_cubit/coaches_cubit.dart';
 import 'package:tranex_users/presentation/login_screen/view_model/login_view_model.dart';
 import 'package:tranex_users/presentation/resources/assets_manager.dart';
 import 'package:tranex_users/presentation/resources/color_manager.dart';
@@ -13,11 +15,6 @@ import 'package:tranex_users/presentation/resources/routes_manager.dart';
 import 'package:tranex_users/presentation/resources/string_manager.dart';
 import 'package:tranex_users/presentation/resources/style_manager.dart';
 import 'package:tranex_users/presentation/resources/values_manager.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
 class LoginView extends StatefulWidget {
   const LoginView({super.key});
@@ -65,19 +62,16 @@ class _LoginViewState extends State<LoginView> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => sl<CoachesCubit>(),
-      child: Scaffold(
-        backgroundColor: ColorManager.white,
-        body: StreamBuilder<StateFlow>(
-          stream: _loginViewModel.outputState,
-          builder: (context, snapshot) =>
-              snapshot.data?.getScreenWidget(
-                context,
-                _getContent(),
-              ) ??
+    return Scaffold(
+      backgroundColor: ColorManager.white,
+      body: StreamBuilder<StateFlow>(
+        stream: _loginViewModel.outputState,
+        builder: (context, snapshot) =>
+            snapshot.data?.getScreenWidget(
+              context,
               _getContent(),
-        ),
+            ) ??
+            _getContent(),
       ),
     );
   }

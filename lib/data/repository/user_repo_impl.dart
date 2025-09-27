@@ -1,15 +1,20 @@
 import 'dart:developer';
 
 import 'package:dartz/dartz.dart';
-import 'package:tranex_users/core/models/models.dart';
+import 'package:hive/hive.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:tranex_users/core/storage/hive_boxes.dart';
+import 'package:tranex_users/core/storage/hive_keys.dart';
+import 'package:tranex_users/core/storage/hive_manager.dart';
 import 'package:tranex_users/data/data_source/remote_data_source.dart';
 import 'package:tranex_users/data/mapper/mapper.dart';
 import 'package:tranex_users/data/network/error_handler.dart';
 import 'package:tranex_users/data/network/failure.dart';
 import 'package:tranex_users/data/network/network_info.dart';
 import 'package:tranex_users/data/network/requests.dart';
+import 'package:tranex_users/domain/models/models.dart';
+import 'package:tranex_users/domain/models/trainee_model.dart';
 import 'package:tranex_users/domain/repository/user_repo.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 class UserRepositoryImpl extends UserRepository {
   late final RemoteDataSource _remoteDataSource;
@@ -24,11 +29,16 @@ class UserRepositoryImpl extends UserRepository {
   Future<Either<Failure, TraineeData>> login(LoginRequest loginRequest) async {
     if (_networkInfo.isConnected) {
       try {
-        final Map<String, dynamic> response = await _remoteDataSource.loginResponse(
-          loginRequest,
-        );
+        final Map<String, dynamic> response =
+            await _remoteDataSource.loginResponse(loginRequest);
         log(response.toString(), name: 'loginResponse in user repo impl');
-        return Right(response.traineeDataToDomain() as TraineeData);
+        final TraineeData traineeData = response.traineeDataToDomain();
+        // Save the user data locally using Hive
+        await HiveManager.put(
+            boxName: HiveBoxes.userDataBox,
+            key: HiveKeys.userDataKey,
+            value: traineeData);
+        return Right(traineeData);
       } catch (error, s) {
         log(error.toString());
         log(s.toString());
@@ -180,19 +190,32 @@ class UserRepositoryImpl extends UserRepository {
     }
   }
 
-  @override
-  Future<Either<Failure, User>> updateProfile(
-      UpdateProfileRequest updateProfileRequest) async {
-    try {
-      User user =
-          await _remoteDataSource.updateProfileResponse(updateProfileRequest);
-      return Right(user);
-    } catch (error) {
-      return Left(
-        ErrorHandler.handle(error).failure,
-      );
-    }
+@override
+Future<Either<Failure, User>> updateProfile(
+    UpdateProfileRequest updateProfileRequest) async {
+  try {
+    User user =
+        await _remoteDataSource.updateProfileResponse(updateProfileRequest);
+
+    final traineeData = user.userToTraineeData();
+
+    // ✅ Save locally in Hive
+    await HiveManager.put(
+      boxName: HiveBoxes.userDataBox,
+      key: HiveKeys.userDataKey,
+      value: traineeData,
+    );
+
+    log("✅ User updated and cached locally in Hive: $traineeData");
+
+    return Right(user);
+  } catch (error, st) {
+    log("❌ Error in updateProfile: $error", stackTrace: st);
+    return Left(
+      ErrorHandler.handle(error).failure,
+    );
   }
+}
 
   @override
   Future<Either<Failure, void>> deleteAccount() async {

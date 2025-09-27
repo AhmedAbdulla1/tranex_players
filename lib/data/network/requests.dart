@@ -1,6 +1,4 @@
-import 'package:tranex_users/domain/models/matches_entity.dart';
-import 'package:tranex_users/domain/models/models.dart';
-import 'package:tranex_users/presentation/fencing_match/fencing_match_view_model.dart';
+import 'package:tranex_users/domain/models/trainee_model.dart';
 
 class LoginRequest {
   String email;
@@ -82,7 +80,7 @@ class AddNewExerciseRequest {
 class GetTrainingRequest {
   int exerciseId;
   String traineeId;
-  bool weakly ;
+  bool weakly;
 
   GetTrainingRequest({
     required this.exerciseId,
@@ -91,17 +89,13 @@ class GetTrainingRequest {
   });
 }
 
-
 class AddTrainingRequest {
   int exerciseId;
   String traineeId;
   TrainingDataRequest data;
 
-  AddTrainingRequest({
-    required this.exerciseId,
-    required this.traineeId,
-    required this.data
-  });
+  AddTrainingRequest(
+      {required this.exerciseId, required this.traineeId, required this.data});
 }
 
 class TrainingDataRequest {

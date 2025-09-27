@@ -1,3 +1,5 @@
+import 'package:tranex_users/domain/models/trainee_model.dart';
+
 class SliderObject {
   String title;
   String subTitle;
@@ -78,69 +80,33 @@ class TeamData {
       {required this.teamName, required this.trainees, required this.teamId});
 }
 
-class TraineeData {
-  String traineeName;
-  String? country;
-  String? weaponType;
-  int? age;
-  bool isActive;
-  String photo;
-  String traineeId;
-  bool isFencer;
-  Map<String, dynamic>? exercise;
+// class TrainingData {
+//   String trainingId;
+//   int overAllSets;
+//   int overAllReps;
+//   int overAllTime;
+//   double score;
+//   List<Data> data;
 
-  TraineeData(
-      {required this.traineeName,
-      required this.traineeId,
-      this.country,
-        this.age,
-      required this.isActive,
-      this.weaponType,
-      required this.isFencer,
-      required this.photo,
-      this.exercise});
+//   TrainingData(
+//       {required this.trainingId,
+//       required this.overAllSets,
+//       required this.overAllReps,
+//       required this.overAllTime,
+//       required this.score,
+//       required this.data});
 
-  factory TraineeData.fromJson(Map<String, dynamic> json) {
-    return TraineeData(
-      traineeName: json['name']??'',
-      traineeId: json['athlete_id'],
-      isFencer: json['is_fencer'],
-      photo: json['profile_picture']??'',
-      isActive: json['is_active']??false,
-      country: json['country']??'EG',
-      weaponType: json['weapon_type']??'',
-    );
-  }
-
-  Map<String, dynamic> toJson() => {
-    'N': traineeName,
-    'ID': traineeId,
-    'F': isFencer,
-    'P': photo,
-    'A': isActive,
-    'C': country,
-    'W': weaponType,
-    'AG': age,
-    'E': exercise,
-  };
-}
-
-class TrainingData {
-  String trainingId;
-  int overAllSets;
-  int overAllReps;
-  int overAllTime;
-  double score;
-  List<Data> data;
-
-  TrainingData(
-      {required this.trainingId,
-      required this.overAllSets,
-      required this.overAllReps,
-      required this.overAllTime,
-      required this.score,
-      required this.data});
-}
+//   toMap() {
+//     return {
+//       'trainingId': trainingId,
+//       'overAllSets': overAllSets,
+//       'overAllReps': overAllReps,
+//       'overAllTime': overAllTime,
+//       'score': score,
+//       'data': data.map((data) => data.toMap()).toList(),
+//     };
+//   }
+// }
 
 class Data {
   DateTime date;

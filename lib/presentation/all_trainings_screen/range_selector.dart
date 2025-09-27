@@ -1,7 +1,3 @@
-// custom_range_selector.dart
-import 'dart:async';
-import 'package:tranex_users/presentation/resources/font_manager.dart';
-import 'package:tranex_users/presentation/resources/values_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:syncfusion_flutter_sliders/sliders.dart';
@@ -10,7 +6,7 @@ class CustomRangeSelector extends StatefulWidget {
   final double min;
   final double max;
   final SfRangeValues initialValues;
-  final StreamController<SfRangeValues> rangeStreamController;
+  final Function(SfRangeValues) onChanged;
   final double interval;
 
   const CustomRangeSelector({
@@ -18,7 +14,7 @@ class CustomRangeSelector extends StatefulWidget {
     required this.min,
     required this.max,
     required this.initialValues,
-    required this.rangeStreamController,
+    required this.onChanged,
     required this.interval,
   });
 
@@ -36,7 +32,6 @@ class _CustomRangeSelectorState extends State<CustomRangeSelector> {
   }
 
   void _onRangeChanged(SfRangeValues values) {
-    // Snap to integer values
     final int start = values.start.round();
     final int end = values.end.round();
     final newValues = SfRangeValues(start.toDouble(), end.toDouble());
@@ -45,8 +40,7 @@ class _CustomRangeSelectorState extends State<CustomRangeSelector> {
       _currentValues = newValues;
     });
 
-    // Emit the new range to the stream
-    widget.rangeStreamController.add(newValues);
+    widget.onChanged(newValues);
   }
 
   void _selectQuarter(int quarter) {
@@ -60,64 +54,71 @@ class _CustomRangeSelectorState extends State<CustomRangeSelector> {
       _currentValues = newValues;
     });
 
-    // Emit the new range to the stream
-    widget.rangeStreamController.add(newValues);
+    widget.onChanged(newValues);
   }
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        // Quarter Selector Buttons
-
-        // Range Selector
         SfRangeSelector(
-          key: ValueKey(_currentValues), // Force rebuild when values change
+          activeColor: Colors.deepOrangeAccent,
+          key: ValueKey(_currentValues),
           min: widget.min,
           max: widget.max,
-          initialValues: _currentValues, // Use dynamic values
+          initialValues: _currentValues,
           onChanged: _onRangeChanged,
           showLabels: true,
           showTicks: true,
           showDividers: true,
           interval: widget.interval,
-          stepSize: 1.0, // Snap to integer values
+          stepSize: 1.0,
           child: Container(
-            height:AppSize.s20,
+            height: 20.h,
             color: Colors.grey.withOpacity(0.1),
             child: Center(
               child: Text(
                 'Range: ${_currentValues.start.toStringAsFixed(0)} - ${_currentValues.end.toStringAsFixed(0)} s',
-                style: TextStyle(fontSize:FontSize.s12,color: Colors.black),
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: Colors.black,
+                ),
               ),
             ),
           ),
         ),
-        const SizedBox(height:AppSize.s5),
-
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        SizedBox(height: 10.h),
+        Wrap(
+          spacing: 8.w,
+          runSpacing: 8.h,
+          alignment: WrapAlignment.center,
           children: [
-            const Text('Quarter', style: const TextStyle(color: Colors.black)),
-            ElevatedButton(
-              onPressed: () => _selectQuarter(0),
-              child: const Text('1st',style: TextStyle(color: Colors.white),),
+            const Text(
+              'Quarter',
+              style: const TextStyle(fontSize: 14, color: Colors.black),
             ),
-            ElevatedButton(
-              onPressed: () => _selectQuarter(1),
-              child: const Text('2nd',style: TextStyle(color: Colors.white),),
-            ),
-            ElevatedButton(
-              onPressed: () => _selectQuarter(2),
-              child: const Text('3rd',style: TextStyle(color: Colors.white) ,),
-            ),
-            ElevatedButton(
-              onPressed: () => _selectQuarter(3),
-              child: const Text('4th',style: TextStyle(color: Colors.white),),
-            ),
+            _buildQuarterButton('1st', 0),
+            _buildQuarterButton('2nd', 1),
+            _buildQuarterButton('3rd', 2),
+            _buildQuarterButton('4th', 3),
           ],
         ),
       ],
+    );
+  }
+
+  Widget _buildQuarterButton(String label, int index) {
+    return ElevatedButton(
+      style: ElevatedButton.styleFrom(
+        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+        backgroundColor: Colors.deepOrangeAccent,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.r)),
+      ),
+      onPressed: () => _selectQuarter(index),
+      child: Text(
+        label,
+        style: const TextStyle(fontSize: 10, color: Colors.white),
+      ),
     );
   }
 }

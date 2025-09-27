@@ -1,20 +1,21 @@
 import 'dart:async';
 import 'dart:convert';
+
 import 'package:dartz/dartz.dart';
+import 'package:flutter/material.dart' hide ConnectionState;
+import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:rxdart/rxdart.dart';
 import 'package:tranex_users/app/app_prefs.dart';
 import 'package:tranex_users/app/di.dart';
 import 'package:tranex_users/data/network/failure.dart';
 import 'package:tranex_users/data/network/requests.dart';
 import 'package:tranex_users/domain/models/models.dart';
+import 'package:tranex_users/domain/models/trainee_model.dart';
 import 'package:tranex_users/domain/usecase/training_data_usecase.dart';
 import 'package:tranex_users/presentation/base/base_view_model.dart';
 import 'package:tranex_users/presentation/common/state_render/state_render.dart';
 import 'package:tranex_users/presentation/common/state_render/state_renderer_imp.dart';
 import 'package:tranex_users/presentation/wifi_scanner/connection_repo.dart';
-import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart' hide ConnectionState;
-import 'package:mobile_scanner/mobile_scanner.dart';
-import 'package:rxdart/rxdart.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
 enum TrainingStatus {
@@ -40,7 +41,7 @@ class FencingTrainingViewModel extends BaseViewModel {
 
   // State
   final _status =
-  BehaviorSubject<TrainingStatus>.seeded(TrainingStatus.waitingBluetooth);
+      BehaviorSubject<TrainingStatus>.seeded(TrainingStatus.waitingBluetooth);
   final _playerData = BehaviorSubject<TraineeData?>();
   final _points = BehaviorSubject<int>.seeded(0);
   final _timeLeftMs = BehaviorSubject<int?>();
@@ -95,7 +96,7 @@ class FencingTrainingViewModel extends BaseViewModel {
     inputState.add(
         LoadingState(stateRenderType: StateRenderType.fullScreenLoadingState));
     Map<String, dynamic> exerciseJson =
-    jsonDecode(_appPreferences.getTraining()![0]);
+        jsonDecode(_appPreferences.getTraining()![0]);
     exercise = ExerciseData.fromJson(exerciseJson);
   }
 
@@ -133,7 +134,7 @@ class FencingTrainingViewModel extends BaseViewModel {
                 String? code = capture.barcodes.first.rawValue;
                 debugPrint(code);
                 if (code != null) {
-                  code +='00000000000000000000';
+                  code += '00000000000000000000';
                   Navigator.pop(context, code);
                 }
               },
@@ -186,7 +187,9 @@ class FencingTrainingViewModel extends BaseViewModel {
         "Device ${status.deviceNumber}: ${status.state}, ${status.message}, nfcUid: ${status.nfcUid}, point: ${status.point}, speed: ${status.speed}");
 
     // Handle NFC
-    if (_isNFCPolling && status.state == ConnectionState.nfcSuccess && status.nfcUid != null) {
+    if (_isNFCPolling &&
+        status.state == ConnectionState.nfcSuccess &&
+        status.nfcUid != null) {
       await _checkNFC(status.nfcUid!, status.deviceNumber);
     } else if (status.state == ConnectionState.nfcError) {
       inputState.add(
@@ -284,9 +287,9 @@ class FencingTrainingViewModel extends BaseViewModel {
     _status.add(TrainingStatus.checkingNFC);
 
     Either<Failure, TraineeData> res =
-    await _trainingUsecase.checkTraineeExistence(rfidUID);
+        await _trainingUsecase.checkTraineeExistence(rfidUID);
     res.fold(
-          (failure) {
+      (failure) {
         if (failure.code == 10) {
           _status.add(TrainingStatus.errorNFC);
           inputState.add(ContentState());
@@ -308,7 +311,7 @@ class FencingTrainingViewModel extends BaseViewModel {
         }
         _repository.confirmNfc(deviceNumber, false);
       },
-          (trainee) async {
+      (trainee) async {
         if (!trainee.isFencer) {
           inputState.add(
             ErrorState(
@@ -380,7 +383,7 @@ class FencingTrainingViewModel extends BaseViewModel {
     if (_isPaused) return;
 
     final durationMs =
-    targetMinutes != null ? targetMinutes! * 60 * 1000 : null;
+        targetMinutes != null ? targetMinutes! * 60 * 1000 : null;
 
     _timer?.cancel();
     _timer = Timer.periodic(const Duration(milliseconds: 200), (t) {
@@ -408,7 +411,8 @@ class FencingTrainingViewModel extends BaseViewModel {
   }
 
   void pauseTraining() {
-    if (_isPaused || _inTestMode || _status.value == TrainingStatus.ended) return;
+    if (_isPaused || _inTestMode || _status.value == TrainingStatus.ended)
+      return;
 
     _isPaused = true;
     _timer?.cancel();
@@ -418,7 +422,8 @@ class FencingTrainingViewModel extends BaseViewModel {
   }
 
   void resumeTraining() {
-    if (!_isPaused || _inTestMode || _status.value == TrainingStatus.ended) return;
+    if (!_isPaused || _inTestMode || _status.value == TrainingStatus.ended)
+      return;
 
     _isPaused = false;
     _startTimer();
@@ -454,7 +459,7 @@ class FencingTrainingViewModel extends BaseViewModel {
     );
 
     result.fold(
-          (failure) {
+      (failure) {
         _endedAlready = false;
         inputState.add(
           ErrorState(
@@ -464,7 +469,7 @@ class FencingTrainingViewModel extends BaseViewModel {
           ),
         );
       },
-          (_) {
+      (_) {
         inputState.add(ContentState());
         ScaffoldMessenger.of(context!).showSnackBar(
           const SnackBar(
@@ -497,7 +502,8 @@ class FencingTrainingViewModel extends BaseViewModel {
       _endedBy = 'paused';
     }
 
-    _status.add(byDisconnect ? TrainingStatus.disconnected : TrainingStatus.ended);
+    _status
+        .add(byDisconnect ? TrainingStatus.disconnected : TrainingStatus.ended);
 
     if (context != null) {
       await showDialog(
@@ -529,8 +535,8 @@ class FencingTrainingViewModel extends BaseViewModel {
             byDisconnect
                 ? 'Device disconnected. Save, save and exit, or retry connection?'
                 : _endedBy == 'paused'
-                ? 'Training paused. Save, save and exit, or exit without saving?'
-                : 'Training finished (${_endedBy == 'time' ? 'time limit reached' : _endedBy == 'points' ? 'points target achieved' : 'manual'}). Save or save and exit',
+                    ? 'Training paused. Save, save and exit, or exit without saving?'
+                    : 'Training finished (${_endedBy == 'time' ? 'time limit reached' : _endedBy == 'points' ? 'points target achieved' : 'manual'}). Save or save and exit',
             style: const TextStyle(color: Colors.black),
           ),
           actions: [
@@ -682,7 +688,8 @@ class FencingTrainingViewModel extends BaseViewModel {
     }
   }
 
-  Future<Either<Failure, void>> _saveTraining(TrainingFencingSession req) async {
+  Future<Either<Failure, void>> _saveTraining(
+      TrainingFencingSession req) async {
     debugPrint("Saving training session: playerId=${req.playerId}, "
         "targetMinutes=${req.targetMinutes}, targetPoints=${req.targetPoints}, "
         "achievedPoints=${req.achievedPoints}, durationMs=${req.durationMs}, "

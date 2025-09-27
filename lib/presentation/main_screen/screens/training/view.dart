@@ -1,5 +1,7 @@
 // ignore_for_file: use_build_context_synchronously
 
+import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:tranex_users/domain/models/models.dart';
 import 'package:tranex_users/presentation/common/state_render/state_renderer_imp.dart';
 import 'package:tranex_users/presentation/exercises/view.dart';
@@ -7,11 +9,8 @@ import 'package:tranex_users/presentation/main_screen/screens/training/view_mode
 import 'package:tranex_users/presentation/main_screen/screens/training/widgets/weight_section.dart';
 import 'package:tranex_users/presentation/resources/assets_manager.dart';
 import 'package:tranex_users/presentation/resources/color_manager.dart';
-import 'package:tranex_users/presentation/resources/routes_manager.dart';
 import 'package:tranex_users/presentation/resources/string_manager.dart';
 import 'package:tranex_users/presentation/resources/values_manager.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class TrainingView extends StatefulWidget {
   const TrainingView({super.key});

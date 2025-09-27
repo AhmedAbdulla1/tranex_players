@@ -1,5 +1,5 @@
 import 'package:tranex_users/data/network/requests.dart';
-import 'package:tranex_users/domain/models/models.dart';
+import 'package:tranex_users/domain/models/trainee_model.dart';
 
 class MatchesEntity {
   final List<MatchEntity> matches;
@@ -12,7 +12,9 @@ class MatchesEntity {
     return MatchesEntity(
       matches: (json)
           .map((match) => MatchEntity.fromJson(match as Map<String, dynamic>))
-          .toList().reversed.toList(),
+          .toList()
+          .reversed
+          .toList(),
     );
   }
 }
@@ -85,7 +87,8 @@ class MatchDataEntity {
       timeInMs: json['T'] as int,
     );
   }
-    factory MatchDataEntity.fromBluetooth(Map<String, dynamic> json, int timeInMs) {
+  factory MatchDataEntity.fromBluetooth(
+      Map<String, dynamic> json, int timeInMs) {
     int direction = json['direction'] as int;
     return MatchDataEntity(
       speed: (json['speed'] as num).toDouble(),
@@ -94,4 +97,3 @@ class MatchDataEntity {
     );
   }
 }
-

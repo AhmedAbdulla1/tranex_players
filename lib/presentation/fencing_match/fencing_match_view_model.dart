@@ -1,9 +1,11 @@
 import 'dart:async';
+
 import 'package:dartz/dartz.dart';
+import 'package:flutter/material.dart' hide ConnectionState;
+import 'package:rxdart/rxdart.dart';
 import 'package:tranex_users/data/network/failure.dart';
 import 'package:tranex_users/data/network/requests.dart';
-import 'package:tranex_users/domain/models/matches_entity.dart';
-import 'package:tranex_users/domain/models/models.dart';
+import 'package:tranex_users/domain/models/trainee_model.dart';
 import 'package:tranex_users/domain/usecase/fencing_usecase.dart';
 import 'package:tranex_users/domain/usecase/training_data_usecase.dart';
 import 'package:tranex_users/presentation/base/base_view_model.dart';
@@ -11,8 +13,6 @@ import 'package:tranex_users/presentation/common/state_render/state_render.dart'
 import 'package:tranex_users/presentation/common/state_render/state_renderer_imp.dart';
 import 'package:tranex_users/presentation/wifi_scanner/connection_repo.dart';
 import 'package:tranex_users/presentation/wifi_scanner/device_scanner.dart';
-import 'package:flutter/material.dart' hide ConnectionState;
-import 'package:rxdart/rxdart.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
 class PlayerInfo {
@@ -520,7 +520,7 @@ class FencingMatchViewModel extends BaseViewModel
         player2PointRecords: player2Info.pointRecords,
       ),
     );
-    return  result.fold(
+    return result.fold(
       (failure) {
         if (context?.mounted ?? false) {
           inputState.add(ErrorState(
@@ -559,7 +559,7 @@ class FencingMatchViewModel extends BaseViewModel
           actions: [
             TextButton(
               onPressed: () async {
-                bool saved=  await saveMatchData();
+                bool saved = await saveMatchData();
                 Navigator.of(context!).pop(saved); // close dialog
               },
               child: const Text(
@@ -569,7 +569,7 @@ class FencingMatchViewModel extends BaseViewModel
             ),
             TextButton(
               onPressed: () async {
-                bool saved=  await saveMatchData();
+                bool saved = await saveMatchData();
                 await _repository.endSession(_deviceNumber1!);
                 await _repository.endSession(_deviceNumber2!);
                 Navigator.of(context!).pop(saved); // close dialog
@@ -584,10 +584,8 @@ class FencingMatchViewModel extends BaseViewModel
         ),
       );
       if (result == null) return null;
-
     }
-    if(!result!) return result;
-
+    if (!result!) return result;
 
     if (_deviceNumber1 != null && _deviceNumber2 != null) {
       await _repository.resetFlags(_deviceNumber1!);

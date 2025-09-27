@@ -1,20 +1,19 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:stop_watch_timer/stop_watch_timer.dart';
 import 'package:tranex_users/data/network/requests.dart';
-import 'package:tranex_users/domain/models/matches_entity.dart';
-import 'package:tranex_users/domain/models/models.dart';
+import 'package:tranex_users/domain/models/trainee_model.dart';
+import 'package:tranex_users/presentation/common/reusable/charts/live_chart.dart';
 import 'package:tranex_users/presentation/common/reusable/player_header.dart';
 import 'package:tranex_users/presentation/fencing_match/analysis_match_landscape.dart';
 import 'package:tranex_users/presentation/fencing_match/fencing_match_landscape.dart';
 import 'package:tranex_users/presentation/fencing_match/fencing_match_view_model.dart';
-import 'package:tranex_users/presentation/common/reusable/charts/live_chart.dart';
 import 'package:tranex_users/presentation/fencing_match/widgets/nfc_status_widget.dart';
 import 'package:tranex_users/presentation/resources/assets_manager.dart';
 import 'package:tranex_users/presentation/resources/color_manager.dart';
 import 'package:tranex_users/presentation/resources/font_manager.dart';
 import 'package:tranex_users/presentation/resources/style_manager.dart';
 import 'package:tranex_users/presentation/resources/values_manager.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:stop_watch_timer/stop_watch_timer.dart';
 
 class PlayerDashboard extends StatelessWidget {
   final int playerId;
@@ -606,7 +605,7 @@ class _FencingMatchViewState extends State<FencingMatchView> {
             onSave: () async {
               bool? saved = await _viewModel.saveMatch.call();
               if (saved != null && saved) {
-                  _resetMatch();
+                _resetMatch();
               }
             },
           );

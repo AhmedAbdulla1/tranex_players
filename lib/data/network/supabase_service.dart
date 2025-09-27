@@ -1,15 +1,23 @@
 import 'dart:developer';
 
-import 'package:tranex_users/app/app_prefs.dart';
-import 'package:tranex_users/app/di.dart';
-import 'package:tranex_users/data/network/requests.dart';
 import 'package:flutter/material.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:tranex_users/app/app_prefs.dart';
+import 'package:tranex_users/app/di.dart';
+import 'package:tranex_users/data/network/requests.dart';
 
 class SupabaseService {
   final SupabaseClient _supabase = Supabase.instance.client;
   final AppPreferences _appPreferences = instance<AppPreferences>();
+  String? getPlayerId() {
+    final playerId = _supabase.auth.currentUser?.id;
+    if (playerId != null) {
+      return playerId;
+    } else {
+      Exception("No player id in supabase service");
+    }
+  }
 
   Future<void> saveTrainingData(AddTrainingRequest addTrainingRequest) async {
     try {
@@ -26,7 +34,7 @@ class SupabaseService {
 
       // حفظ في Supabase
       await supabase.from('training').insert({
-        'coach_id': _appPreferences.getCoachId(),
+        'coach_id': getPlayerId(),
         'player_id': addTrainingRequest.traineeId,
         'exercise_id': addTrainingRequest.exerciseId,
         'training_details': trainingDetails,
@@ -70,7 +78,7 @@ class SupabaseService {
 
       await supabase.from('training').insert({
         'player_id': trainingData.traineeId,
-        'coach_id': _appPreferences.getCoachId(),
+        'coach_id': getPlayerId(),
         // Set to actual coach_id if available
         'exercise_id': trainingData.exerciseId,
         // Set to actual exercise_id if available
@@ -228,7 +236,7 @@ class SupabaseService {
           .insert({
             'player1_id': matchRequest.player1Id,
             'player2_id': matchRequest.player2Id,
-            'coach_id': _appPreferences.getCoachId(),
+            'coach_id': getPlayerId(),
             'start_time': DateTime.now().toIso8601String(),
             'duration_ms': matchRequest.durationMs,
             'winner_id': winnerId,
@@ -252,7 +260,7 @@ class SupabaseService {
     final response =
         await _supabase.rpc('get_matches_by_coach_and_player', params: {
       'player_uid': traineeId,
-      'coach_uid': _appPreferences.getUid(),
+      'coach_uid': getPlayerId(),
     });
 
     if (response == null) {
@@ -267,7 +275,7 @@ class SupabaseService {
       AddNewExerciseRequest addNewExerciseRequest) async {
     try {
       int categoryId;
-      final coachId = _appPreferences.getUid();
+      final playerId = _supabase.auth.currentUser!.id;
 
       if (coachId == 0) {
         throw Exception('No coach ID available. Please log in again.');
@@ -279,7 +287,7 @@ class SupabaseService {
         final categoryResponse = await _supabase
             .from('categories')
             .insert({
-              'coach_uid': coachId,
+              'coach_uid': playerId,
               'name': addNewExerciseRequest.categoryName,
             })
             .select('category_id')
@@ -304,7 +312,7 @@ class SupabaseService {
       await _supabase
           .from('exercises')
           .insert({
-            'coach_uid': coachId,
+            'coach_uid': getPlayerId(),
             'name': addNewExerciseRequest.exerciseName,
             'image_url': addNewExerciseRequest.image,
             'device_id': addNewExerciseRequest.deviceId,
@@ -315,8 +323,7 @@ class SupabaseService {
           .select('exercise_id')
           .single();
 
-      return categoryId
-          .toString();
+      return categoryId.toString();
     } catch (e) {
       debugPrint('Failed to add exercise: $e');
       throw Exception('Failed to add exercise: $e');
@@ -325,13 +332,12 @@ class SupabaseService {
 
   Future<List<Map<String, dynamic>>> getExercises() async {
     try {
-      final coachId = _appPreferences.getUid();
-
+      final playerId = _supabase.auth.currentUser!.id;
       final response = await _supabase
           .from('categories')
           .select(
               'category_id, name, exercises(exercise_id, name, image_url, device_id)')
-          .eq('coach_uid', coachId);
+          .eq('coach_uid', playerId);
 
       return response;
     } catch (e) {
@@ -353,13 +359,15 @@ class SupabaseService {
 
   Future<List<Map<String, dynamic>>> getTrainees() async {
     try {
-      final response = await _supabase.rpc<List<Map<String,dynamic>>>('get_athletes_for_coach',
+      final response = await _supabase.rpc<List<Map<String, dynamic>>>(
+          'get_athletes_for_coach',
           params: {"p_coach_id": _appPreferences.getUid()});
-      log('uid ${_appPreferences.getUid()}', name : 'uid in get trainees ');
-      log('run type type ${response.runtimeType}', name : 'run time type in get trainees ');
-      log('player $response ' ,name: 'get_trainees in supabase');
+      log('uid ${_appPreferences.getUid()}', name: 'uid in get trainees ');
+      log('run type type ${response.runtimeType}',
+          name: 'run time type in get trainees ');
+      log('player $response ', name: 'get_trainees in supabase');
       return response;
-    } catch (e , stack ) {
+    } catch (e, stack) {
       debugPrint('Error fetching trainees: $e , $stack');
       return [];
     }
@@ -396,7 +404,7 @@ class SupabaseService {
 
         // تسجيل اللاعب في جدول المدربين
         await _supabase.from('coachplayers').upsert({
-          'coach_id': _appPreferences.getCoachId(),
+          'coach_id': getPlayerId,
           'player_id': data['player_id'],
         });
 
@@ -446,7 +454,7 @@ class SupabaseService {
       var query = supabase
           .from('training')
           .select('training_details, created_at, exercise_id')
-          .eq('player_id', request.traineeId)
+          .eq('player_uid', request.traineeId)
           .eq('exercise_id', request.exerciseId)
           .gte('created_at',
               startDate.toIso8601String()) // يضمن عدم استرجاع داتا أقدم

@@ -1,26 +1,25 @@
 // import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:tranex_users/app/app.dart';
-import 'package:tranex_users/app/di.dart';
-import 'package:tranex_users/data/api_services/services_locator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 // import 'package:instabug_flutter/instabug_flutter.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:tranex_users/app/app.dart';
+import 'package:tranex_users/app/di.dart';
+import 'package:tranex_users/core/storage/hive_manager.dart';
+import 'package:tranex_users/data/network/network_info.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  setupServiceLocator();
-  // تحميل ملف .env أولاً
+  await NetworkInfo().ensureInitialized();
+  await HiveManager.init();
   try {
     await dotenv.load(fileName: ".env");
   } catch (e) {
-    // التعامل مع فشل تحميل .env
     print('Error loading .env file: $e');
     return;
   }
 
-  // تهيئة التبعيات
   await initAppModule();
 
   // تهيئة Supabase

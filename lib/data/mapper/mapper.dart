@@ -3,6 +3,7 @@ import 'package:tranex_users/app/constant.dart';
 import 'package:tranex_users/app/extensions.dart';
 import 'package:tranex_users/data/response/responses.dart';
 import 'package:tranex_users/domain/models/models.dart';
+import 'package:tranex_users/domain/models/trainee_model.dart';
 
 extension UserDataResponseMapper on UserDataResponse? {
   UserData toDomain() {
@@ -196,12 +197,31 @@ extension TrainingDataExtension on Map<String, dynamic> {
     return TraineeData(
         traineeName: this['full_name'],
         photo: this['profile_image'] ?? '',
-        traineeId: this['athlete_id'],
+        traineeId: this['id'],
         isFencer: this['is_fencer'] ?? false,
         isActive: this['is_active'] ?? false,
         country: this['country'] ?? '',
         weaponType: this['weapon_type'] ?? '',
         age: this['age'],
         exercise: {});
+  }
+}
+extension UserMapper on User {
+  TraineeData userToTraineeData() {
+    final metadata = userMetadata ?? {};
+
+    return TraineeData(
+      traineeId: id, // من Supabase User
+      traineeName: metadata['full_name'] ?? '', // أو name
+      photo: metadata['profile_image'] ?? '',
+      isActive: metadata['is_active'] ?? true, // default true لو مش موجود
+      isFencer: metadata['is_fencer'] ?? false,
+      country: metadata['country'] ?? 'EG',
+      weaponType: metadata['weapon_type'],
+      age: metadata['age'],
+      exercise: metadata['exercise'] != null
+          ? Map<String, dynamic>.from(metadata['exercise'])
+          : null,
+    );
   }
 }

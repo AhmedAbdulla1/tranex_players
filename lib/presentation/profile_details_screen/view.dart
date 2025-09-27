@@ -1,17 +1,20 @@
 import 'dart:developer';
 import 'dart:io';
 
-import 'package:tranex_users/app/app_prefs.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:tranex_users/app/di.dart';
 import 'package:tranex_users/app/toast.dart';
+import 'package:tranex_users/core/storage/hive_boxes.dart';
+import 'package:tranex_users/core/storage/hive_keys.dart';
+import 'package:tranex_users/core/storage/hive_manager.dart';
+import 'package:tranex_users/domain/models/trainee_model.dart';
 import 'package:tranex_users/presentation/common/reusable/custom_button.dart';
 import 'package:tranex_users/presentation/common/reusable/custom_text_form_field.dart';
 import 'package:tranex_users/presentation/common/state_render/state_renderer_imp.dart';
 import 'package:tranex_users/presentation/resources/font_manager.dart';
 import 'package:tranex_users/presentation/resources/style_manager.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:image_picker/image_picker.dart';
 
 import '../resources/assets_manager.dart';
 import '../resources/color_manager.dart';
@@ -27,12 +30,13 @@ class ProfileDetailsView extends StatefulWidget {
 }
 
 class _ProfileDetailsViewState extends State<ProfileDetailsView> {
-  final AppPreferences _appPreferences = instance<AppPreferences>();
   final ProfileDetailsViewModel _viewModel =
       instance<ProfileDetailsViewModel>();
   final ImagePicker _imagePicker = ImagePicker();
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
+
+  TraineeData? traineeData;
 
   void _bind() {
     _viewModel.start();
@@ -41,8 +45,23 @@ class _ProfileDetailsViewState extends State<ProfileDetailsView> {
 
   @override
   void initState() {
-    _bind();
     super.initState();
+    _bind();
+
+    // ✅ هات الداتا من هايف
+    traineeData = HiveManager.get(
+      boxName: HiveBoxes.userDataBox,
+      key: HiveKeys.userDataKey,
+    );
+
+    if (traineeData != null) {
+      _nameController.text = traineeData!.traineeName;
+      _emailController.text = traineeData!.traineeName;
+      _viewModel.setName(traineeData!.traineeName);
+      _viewModel.imagePath = traineeData!.photo;
+    }
+
+    log("Profile details traineeData: ${traineeData?.toJson()}");
   }
 
   Future<void> showConnectDialog(BuildContext context) async {
@@ -191,163 +210,124 @@ class _ProfileDetailsViewState extends State<ProfileDetailsView> {
 
   Widget _personPicketByUser(File? localImage) {
     if (localImage != null && localImage.path.isNotEmpty) {
-      // Show the new image picked by the user
-      return Image.file(
-        localImage,
-        fit: BoxFit.fill,
-      );
+      return Image.file(localImage, fit: BoxFit.fill);
     } else if (_viewModel.imagePath != null &&
         _viewModel.imagePath!.isNotEmpty) {
-      // Show the existing network image if available
       return Image.network(
         _viewModel.imagePath!,
         fit: BoxFit.cover,
         errorBuilder: (context, error, stackTrace) {
-          // Fallback to default image if the network image fails to load
-          return Image.asset(
-            ImageAssets.personal,
-            fit: BoxFit.cover,
-          );
+          return Image.asset(ImageAssets.personal, fit: BoxFit.cover);
         },
       );
     } else {
-      // Show the default placeholder image
-      return Image.asset(
-        ImageAssets.personal,
-        fit: BoxFit.cover,
-      );
+      return Image.asset(ImageAssets.personal, fit: BoxFit.cover);
     }
   }
 
   Widget _getContent() {
-    return StreamBuilder(
-      stream: _viewModel.outputData,
-      builder: (context, snapshot) {
-        if (snapshot.hasData) {
-          _nameController.text = _viewModel.signupObject.name;
-          log("Email: ${_viewModel.signupObject.email}");
-          log("Name: ${_viewModel.signupObject.name}");
-          _emailController.text = _viewModel.signupObject.email;
-        }
-        return Padding(
-          padding: EdgeInsets.all(AppPadding.p16.w),
-          child: ListView(
+    return Padding(
+      padding: EdgeInsets.all(AppPadding.p16.w),
+      child: ListView(
+        children: [
+          Stack(
             children: [
-              Stack(
-                children: [
-                  StreamBuilder<File>(
-                    stream: _viewModel.profilePictureOutput,
-                    builder: (context, snapshot) {
-                      return Container(
-                        clipBehavior: Clip.antiAlias,
-                        width: double.infinity,
-                        height: 200.h,
-                        decoration: const BoxDecoration(
-                          color: Colors.white,
-                        ),
-                        child: _personPicketByUser(_viewModel.image),
-                      );
-                    },
-                  ),
-                  Positioned(
-                    bottom: AppSize.s12.w,
-                    right: AppSize.s12.w,
-                    child: CircleAvatar(
-                      minRadius: AppSize.s18.r,
-                      backgroundColor: ColorManager.white,
-                      child: CircleAvatar(
-                        maxRadius: AppSize.s16.r,
-                        backgroundColor: ColorManager.primary,
-                        child: IconButton(
-                          splashColor: ColorManager.white,
-                          onPressed: () {
-                            _showPicker(context);
-                          },
-                          icon: const Icon(
-                            Icons.edit,
-                            size: AppSize.s14,
-                          ),
-                        ),
+              StreamBuilder<File>(
+                stream: _viewModel.profilePictureOutput,
+                builder: (context, snapshot) {
+                  return Container(
+                    clipBehavior: Clip.antiAlias,
+                    width: double.infinity,
+                    height: 200.h,
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                    ),
+                    child: _personPicketByUser(_viewModel.image),
+                  );
+                },
+              ),
+              Positioned(
+                bottom: AppSize.s12.w,
+                right: AppSize.s12.w,
+                child: CircleAvatar(
+                  minRadius: AppSize.s18.r,
+                  backgroundColor: ColorManager.white,
+                  child: CircleAvatar(
+                    maxRadius: AppSize.s16.r,
+                    backgroundColor: ColorManager.primary,
+                    child: IconButton(
+                      splashColor: ColorManager.white,
+                      onPressed: () {
+                        _showPicker(context);
+                      },
+                      icon: const Icon(
+                        Icons.edit,
+                        size: AppSize.s14,
                       ),
                     ),
-                  )
-                ],
-              ),
-              SizedBox(
-                height: AppSize.s35.h,
-              ),
-              customRow(
-                AppStrings.name,
-                _viewModel.outNameIsValid,
-                _nameController,
-              ),
-              SizedBox(height: AppSize.s14.h),
-              Row(
-                children: [
-                  Text(
-                    AppStrings.email,
-                    style: Theme.of(context).textTheme.labelSmall,
-                  ),
-                  const SizedBox(
-                    width: AppSize.s14,
-                  ),
-                  Expanded(
-                    child: TextFormField(
-                      enabled: false,
-                      style: getLightStyle(
-                        color: ColorManager.simiBlue,
-                        fontSize: FontSize.s18,
-                      ),
-                      keyboardType: TextInputType.emailAddress,
-                      controller: _emailController,
-                    ),
-                  ),
-                ],
-              ),
-              14.verticalSpace,
-              ElevatedButton.icon(
-                icon: const Icon(
-                  Icons.signal_cellular_alt_2_bar_rounded,
-                  color: Colors.white,
-                  size: 24,
-                ),
-                onPressed: () {
-                  showConnectDialog(context);
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: ColorManager.simiBlue,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8.r),
                   ),
                 ),
-                label: Text(
-                  "Connect to Head Coach",
-                  style: getMediumStyle(
-                      fontSize: FontSize.s16, color: Colors.white),
-                ),
-              ),
-              SizedBox(height: 200.h),
-              customElevatedButtonWithoutStream(
-                onPressed: () {
-                  _viewModel.updateProfile(context).then((value) {
-                    _viewModel.inputState
-                        .add(SuccessState("Update Successfully"));
-                    Future.delayed(const Duration(seconds: 1), () {
-                      _viewModel.inputState.add(ContentState());
-                    });
-                  });
-                },
-                child: const Text(
-                  AppStrings.updateProfile,
-                  style: TextStyle(
-                    color: Colors.white,
+              )
+            ],
+          ),
+          SizedBox(height: AppSize.s35.h),
+          customRow(
+              AppStrings.name, _viewModel.outNameIsValid, _nameController),
+          SizedBox(height: AppSize.s14.h),
+          Row(
+            children: [
+              Text(AppStrings.email,
+                  style: Theme.of(context).textTheme.labelSmall),
+              const SizedBox(width: AppSize.s14),
+              Expanded(
+                child: TextFormField(
+                  enabled: false,
+                  style: getLightStyle(
+                    color: ColorManager.simiBlue,
+                    fontSize: FontSize.s18,
                   ),
+                  keyboardType: TextInputType.emailAddress,
+                  controller: _emailController,
                 ),
               ),
             ],
           ),
-        );
-      },
+          14.verticalSpace,
+          ElevatedButton.icon(
+            icon: const Icon(Icons.signal_cellular_alt_2_bar_rounded,
+                color: Colors.white, size: 24),
+            onPressed: () {
+              showConnectDialog(context);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: ColorManager.simiBlue,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8.r),
+              ),
+            ),
+            label: Text(
+              "Connect to Head Coach",
+              style:
+                  getMediumStyle(fontSize: FontSize.s16, color: Colors.white),
+            ),
+          ),
+          SizedBox(height: 200.h),
+          customElevatedButtonWithoutStream(
+            onPressed: () {
+              _viewModel.updateProfile(context).then((value) {
+                _viewModel.inputState.add(SuccessState("Update Successfully"));
+                Future.delayed(const Duration(seconds: 1), () {
+                  _viewModel.inputState.add(ContentState());
+                });
+              });
+            },
+            child: const Text(
+              AppStrings.updateProfile,
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -356,20 +336,16 @@ class _ProfileDetailsViewState extends State<ProfileDetailsView> {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(
-          text,
-          style: Theme.of(context).textTheme.labelSmall,
-        ),
-        const SizedBox(
-          width: AppSize.s14,
-        ),
+        Text(text, style: Theme.of(context).textTheme.labelSmall),
+        const SizedBox(width: AppSize.s14),
         Expanded(
           child: SizedBox(
             width: 200,
             child: customTextFormField(
-                stream: stream,
-                textEditingController: textEditingController,
-                hintText: ''),
+              stream: stream,
+              textEditingController: textEditingController,
+              hintText: '',
+            ),
           ),
         ),
       ],

@@ -1,8 +1,8 @@
 import 'package:dartz/dartz.dart';
-import 'package:tranex_users/core/models/models.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:tranex_users/data/network/failure.dart';
 import 'package:tranex_users/data/network/requests.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:tranex_users/domain/models/trainee_model.dart';
 
 abstract class UserRepository {
   Future<Either<Failure, TraineeData>> login(LoginRequest loginRequest);

@@ -1,21 +1,23 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
+
+import 'package:dartz/dartz.dart';
+import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
+import 'package:rxdart/rxdart.dart';
 import 'package:tranex_users/app/app.dart';
 import 'package:tranex_users/app/app_prefs.dart';
 import 'package:tranex_users/app/di.dart';
 import 'package:tranex_users/app/extensions.dart';
 import 'package:tranex_users/data/network/failure.dart';
 import 'package:tranex_users/domain/models/models.dart';
+import 'package:tranex_users/domain/models/trainee_model.dart';
 import 'package:tranex_users/domain/usecase/training_data_usecase.dart';
 import 'package:tranex_users/presentation/base/base_view_model.dart';
 import 'package:tranex_users/presentation/common/state_render/state_render.dart';
 import 'package:tranex_users/presentation/common/state_render/state_renderer_imp.dart';
-import 'package:dartz/dartz.dart';
 import 'package:tranex_users/presentation/session_screen/ble_device_connector.dart';
 import 'package:tranex_users/presentation/session_screen/widgets/custom_bar_chart.dart';
-import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
-import 'package:rxdart/rxdart.dart';
 
 class InTrainingViewModel extends InTrainingViewModelOutput {
   final StreamController<ChartData?> _dataStreamController =
@@ -92,6 +94,7 @@ class InTrainingViewModel extends InTrainingViewModelOutput {
     _ble.writeCharacteristicWithoutResponse(_rxCharacteristic,
         value: 'OnSave'.codeUnits);
   }
+
   void sendEnd() {
     _ble.writeCharacteristicWithoutResponse(_rxCharacteristic,
         value: 'end'.codeUnits);
@@ -183,8 +186,7 @@ class InTrainingViewModel extends InTrainingViewModelOutput {
         } else if (jsonData.containsKey('speed')) {
           print("Received data: $jsonData");
           startListening ? _processSpeedData(jsonData) : null;
-        }
-        else if (jsonData.containsKey('point')) {
+        } else if (jsonData.containsKey('point')) {
           print("Received data: $jsonData");
         }
       } catch (e) {
@@ -258,24 +260,24 @@ class InTrainingViewModel extends InTrainingViewModelOutput {
       }
 
       double peakSpeed =
-      _speedReadings.reduce((a, b) => a.abs() > b.abs() ? a : b);
+          _speedReadings.reduce((a, b) => a.abs() > b.abs() ? a : b);
       int peakIndex = _speedReadings.indexOf(peakSpeed);
       double peakTime = time - (0.1 * (_speedReadings.length - peakIndex - 1));
 
       List<double> eccSpeedsForTrack =
-      _speedReadings.sublist(0, peakIndex + 1); // Eccentric phase
+          _speedReadings.sublist(0, peakIndex + 1); // Eccentric phase
       List<double> conSpeedsForTrack =
-      _speedReadings.sublist(peakIndex + 1); // Concentric phase
+          _speedReadings.sublist(peakIndex + 1); // Concentric phase
 
       double avgEccSpeedForTrack = (eccSpeedsForTrack.isNotEmpty
-          ? eccSpeedsForTrack.reduce((a, b) => a + b) /
-          eccSpeedsForTrack.length
-          : 0.0)
+              ? eccSpeedsForTrack.reduce((a, b) => a + b) /
+                  eccSpeedsForTrack.length
+              : 0.0)
           .formatNum();
       double avgConSpeedForTrack = (conSpeedsForTrack.isNotEmpty
-          ? conSpeedsForTrack.reduce((a, b) => a + b) /
-          conSpeedsForTrack.length
-          : 0.0)
+              ? conSpeedsForTrack.reduce((a, b) => a + b) /
+                  conSpeedsForTrack.length
+              : 0.0)
           .formatNum();
 
       eccSpeeds.add(avgEccSpeedForTrack.abs());
@@ -284,7 +286,8 @@ class InTrainingViewModel extends InTrainingViewModelOutput {
       int numPointsEcc = peakIndex + 1;
       double deltaTimeEcc = numPointsEcc * 0.1;
       double omegaPeak = 2 * pi * peakSpeed.abs();
-      double alphaEcc = deltaTimeEcc != 0 ? (omegaPeak - 0) / deltaTimeEcc : 0.0;
+      double alphaEcc =
+          deltaTimeEcc != 0 ? (omegaPeak - 0) / deltaTimeEcc : 0.0;
 
       double inertia = 0.5 * weight * pow(radius, 2);
       double torqueEcc = inertia * alphaEcc;
@@ -292,7 +295,8 @@ class InTrainingViewModel extends InTrainingViewModelOutput {
 
       int numPointsCon = _speedReadings.length - peakIndex - 1;
       double deltaTimeCon = numPointsCon * 0.1;
-      double alphaCon = deltaTimeCon != 0 ? (0 - omegaPeak) / deltaTimeCon : 0.0;
+      double alphaCon =
+          deltaTimeCon != 0 ? (0 - omegaPeak) / deltaTimeCon : 0.0;
       double torqueCon = inertia * alphaCon;
       double forceCon = (torqueCon / radius).formatNum();
 

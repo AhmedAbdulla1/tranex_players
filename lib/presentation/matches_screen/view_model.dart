@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:tranex_users/app/di.dart';
 import 'package:tranex_users/domain/models/matches_entity.dart';
 import 'package:tranex_users/domain/models/models.dart';
+import 'package:tranex_users/domain/models/trainee_model.dart';
 import 'package:tranex_users/domain/repository/trainees_repo.dart';
 import 'package:tranex_users/domain/usecase/matches_usecase.dart';
 import 'package:tranex_users/presentation/base/base_view_model.dart';

@@ -1,12 +1,12 @@
 import 'dart:developer';
 import 'dart:io';
 
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:tranex_users/app/app_prefs.dart';
 import 'package:tranex_users/app/constant.dart';
 import 'package:tranex_users/app/di.dart';
 import 'package:tranex_users/data/network/requests.dart';
-import 'package:google_sign_in/google_sign_in.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 class SupabaseAppClient {
   final AppPreferences _appPreferences = instance<AppPreferences>();
@@ -189,17 +189,45 @@ class SupabaseAppClient {
     }
   }
 
-  // تحديث بيانات الملف الشخصي
   Future<User> updateProfile(UpdateProfileRequest updateProfileRequest) async {
-    final updates = <String, dynamic>{};
-    if (updateProfileRequest.profilePicture != null) {
-      updates['photo_url'] = updateProfileRequest.profilePicture;
+    try {
+      final userId = _supabase.auth.currentUser?.id;
+      if (userId == null) {
+        throw Exception("❌ No authenticated user found");
+      }
+
+      log("👤 Updating profile for user: $userId");
+
+      final tableUpdates = <String, dynamic>{};
+
+      if (updateProfileRequest.profilePicture != null) {
+        tableUpdates['profile_image'] = updateProfileRequest.profilePicture;
+        log("🖼️ Profile image to update: ${updateProfileRequest.profilePicture}");
+      }
+
+      if (updateProfileRequest.name != null) {
+        tableUpdates['full_name'] = updateProfileRequest.name;
+        log("✏️ Full name to update: ${updateProfileRequest.name}");
+      }
+
+      if (tableUpdates.isNotEmpty) {
+        final response = await _supabase
+            .from('users')
+            .update(tableUpdates)
+            .eq('id', userId)
+            .select()
+            .single();
+
+        log("✅ Profile updated in users table: $response");
+      } else {
+        log("⚠️ No updates provided, skipping DB update.");
+      }
+
+      return _supabase.auth.currentUser!;
+    } catch (e, st) {
+      log("❌ Error while updating profile: $e", stackTrace: st);
+      rethrow;
     }
-    if (updateProfileRequest.name != null) {
-      updates['display_name'] = updateProfileRequest.name;
-    }
-    await _supabase.auth.updateUser(UserAttributes(data: updates));
-    return _supabase.auth.currentUser!;
   }
 
   // تسجيل الخروج

@@ -3,8 +3,12 @@ import 'dart:developer';
 import 'dart:io';
 
 import 'package:dartz/dartz.dart';
+import 'package:tranex_users/core/storage/hive_boxes.dart';
+import 'package:tranex_users/core/storage/hive_keys.dart';
+import 'package:tranex_users/core/storage/hive_manager.dart';
 import 'package:tranex_users/data/network/failure.dart';
 import 'package:tranex_users/data/network/requests.dart';
+import 'package:tranex_users/domain/models/trainee_model.dart';
 import 'package:tranex_users/domain/usecase/user_usecase.dart';
 import 'package:tranex_users/presentation/base/base_view_model.dart';
 import 'package:tranex_users/presentation/common/reusable/upload_image_service.dart';
@@ -134,8 +138,12 @@ class ProfileDetailsViewModel extends ProfileDetailsViewModelOutput {
               }),
         );
         return false;
-      }, (data) {
+      }, (data) async {
         debugPrint('update profile success');
+        
+        // Update Hive storage with the new profile data
+        await _updateHiveStorage(signupObject.name, imageUrl);
+        
         inputState.add(
           ContentState(),
         );
@@ -143,6 +151,42 @@ class ProfileDetailsViewModel extends ProfileDetailsViewModelOutput {
       });
     }
     return uploadImageResult;
+  }
+  
+  /// Update Hive storage with the latest profile data
+  Future<void> _updateHiveStorage(String name, String? profilePicture) async {
+    try {
+      // Get current trainee data from Hive
+      final traineeData = HiveManager.get(
+        boxName: HiveBoxes.userDataBox,
+        key: HiveKeys.userDataKey,
+      ) as TraineeData?;
+      
+      if (traineeData != null) {
+        // Update trainee data with new values
+        final updatedTraineeData = TraineeData(
+          traineeId: traineeData.traineeId,
+          traineeName: name.isNotEmpty ? name : traineeData.traineeName,
+          photo: profilePicture ?? traineeData.photo,
+          exercise: traineeData.exercise,
+          isActive: traineeData.isActive,
+          isFencer: traineeData.isFencer,
+        );
+        
+        // Save updated data back to Hive
+        await HiveManager.put(
+          boxName: HiveBoxes.userDataBox,
+          key: HiveKeys.userDataKey,
+          value: updatedTraineeData,
+        );
+        
+        log("Updated Hive storage with new profile data: ${updatedTraineeData.toJson()}");
+      } else {
+        log("No trainee data found in Hive storage to update");
+      }
+    } catch (e) {
+      log("Error updating Hive storage: $e");
+    }
   }
 
   @override

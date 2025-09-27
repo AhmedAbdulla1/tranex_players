@@ -1,7 +1,7 @@
 import 'dart:developer';
 
 import 'package:dartz/dartz.dart';
-import 'package:tranex_users/data/data_source/local_data_source.dart';
+import 'package:flutter/material.dart';
 import 'package:tranex_users/data/data_source/remote_data_source.dart';
 import 'package:tranex_users/data/mapper/mapper.dart';
 import 'package:tranex_users/data/network/error_handler.dart';
@@ -10,8 +10,8 @@ import 'package:tranex_users/data/network/network_info.dart';
 import 'package:tranex_users/data/network/requests.dart';
 import 'package:tranex_users/domain/models/matches_entity.dart';
 import 'package:tranex_users/domain/models/models.dart';
+import 'package:tranex_users/domain/models/trainee_model.dart';
 import 'package:tranex_users/domain/repository/trainees_repo.dart';
-import 'package:flutter/material.dart';
 
 class TraineesRepoImpl implements TraineesRepository {
   final RemoteDataSource _remoteDataSource;
@@ -24,7 +24,7 @@ class TraineesRepoImpl implements TraineesRepository {
 
   @override
   Future<Either<Failure, List<TraineeData>>> getTrainees() async {
-    if ( _networkInfo.isConnected) {
+    if (_networkInfo.isConnected) {
       try {
         List<Map<String, dynamic>> response =
             await _remoteDataSource.getTraineesDataResponse();
@@ -42,7 +42,7 @@ class TraineesRepoImpl implements TraineesRepository {
   @override
   Future<Either<Failure, TraineeData>> checkTraineeExistence(
       String traineeId) async {
-    if ( _networkInfo.isConnected) {
+    if (_networkInfo.isConnected) {
       try {
         Map<String, dynamic> response =
             await _remoteDataSource.checkTraineeExistence(traineeId);
@@ -162,7 +162,7 @@ class TraineesRepoImpl implements TraineesRepository {
       try {
         await _remoteDataSource.saveFencingTrainingResponse(addTrainingRequest);
         return const Right(0);
-      } catch (error , stackTrace) {
+      } catch (error, stackTrace) {
         debugPrint(error.toString());
         debugPrintStack(stackTrace: stackTrace, label: "saveFencingTraining");
         return Left(

@@ -2,6 +2,7 @@ import 'package:tranex_users/app/app_prefs.dart';
 import 'package:tranex_users/app/di.dart';
 import 'package:tranex_users/domain/models/matches_entity.dart';
 import 'package:tranex_users/domain/models/models.dart';
+import 'package:tranex_users/domain/models/trainee_model.dart';
 import 'package:tranex_users/presentation/add_new_trainee_screen/view.dart';
 import 'package:tranex_users/presentation/analysis_screen/analysis_match.dart';
 import 'package:tranex_users/presentation/exercises/view.dart';

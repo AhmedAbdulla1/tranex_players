@@ -1,18 +1,18 @@
 import 'dart:async';
 import 'dart:math' as math;
-import 'package:tranex_users/data/network/requests.dart';
-import 'package:tranex_users/domain/models/matches_entity.dart';
-import 'package:tranex_users/domain/models/models.dart';
-import 'package:tranex_users/presentation/fencing_match/widgets/custom_pie_chart.dart';
-import 'package:tranex_users/presentation/fencing_match/widgets/range_selector.dart';
-import 'package:tranex_users/presentation/fencing_match/widgets/speed_line_chart.dart';
+
 import 'package:flutter/material.dart';
-import 'package:tranex_users/presentation/resources/font_manager.dart';
-import 'package:tranex_users/presentation/resources/values_manager.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:syncfusion_flutter_sliders/sliders.dart';
-import '../common/reusable/custom_button.dart';
+import 'package:tranex_users/data/network/requests.dart';
+import 'package:tranex_users/domain/models/matches_entity.dart';
+import 'package:tranex_users/domain/models/trainee_model.dart';
+import 'package:tranex_users/presentation/fencing_match/widgets/custom_pie_chart.dart';
+import 'package:tranex_users/presentation/fencing_match/widgets/range_selector.dart';
+import 'package:tranex_users/presentation/fencing_match/widgets/speed_line_chart.dart';
+import 'package:tranex_users/presentation/resources/font_manager.dart';
+import 'package:tranex_users/presentation/resources/values_manager.dart';
 
 class FencingAnalysisView extends StatefulWidget {
   final MatchEntity matchEntity;
@@ -177,7 +177,7 @@ class _FencingAnalysisViewState extends State<FencingAnalysisView> {
                                     filteredOpponentMatchData),
                                 _buildQuickStatsSection(filteredPlayerMatchData,
                                     filteredOpponentMatchData),
-                                SizedBox(height: AppSize.s10),
+                                const SizedBox(height: AppSize.s10),
                               ],
                             );
                           },

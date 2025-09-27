@@ -1,9 +1,9 @@
 import 'package:dartz/dartz.dart';
-import 'package:tranex_users/core/models/models.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:tranex_users/data/network/failure.dart';
 import 'package:tranex_users/data/network/requests.dart';
+import 'package:tranex_users/domain/models/trainee_model.dart';
 import 'package:tranex_users/domain/repository/user_repo.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 class UserUsecase {
   final UserRepository _repository;
